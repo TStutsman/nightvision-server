@@ -2,12 +2,12 @@
   "name": "server",
   "version": "1.0.0",
   "description": "Night Vision server",
-  "main": "index.js",
+  "main": "app.ts",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon --inspect index.js"
+    "start": "tsx ./app.ts",
+    "dev": "nodemon --inspect ./app.ts"
   },
   "author": "TStutsman",
   "license": "ISC",
@@ -17,6 +17,7 @@
     "typescript": "^5.6.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "tsx": "^4.19.1"
   }
 }
