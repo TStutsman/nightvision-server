@@ -7,8 +7,8 @@ export class Deck {
 
     constructor() {
         // Map revealed and illuminated statuses onto each animal tile
-        this.tileTypes = Deck.animals.map(animalType => ({type: animalType, revealed: false, illuminated: false}));
-        this.bearTile = { type: 'Bear', revealed: false };
+        this.tileTypes = Deck.animals.map(animalType => new Tile(animalType));
+        this.bearTile = new Tile('Bear');
 
         // Create a shuffled deck of all pairs and bear tile
         this.tiles = Deck.shuffle([...this.tileTypes, ...this.tileTypes, this.bearTile]);
