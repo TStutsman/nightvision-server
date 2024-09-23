@@ -33,6 +33,11 @@ export class Game {
     this.flippedTiles = [];
   }
 
+  checkForMatch():boolean {
+    const [tile1, tile2] = this.flippedTiles;
+    return tile1.type == tile2.type;
+  }
+
   goToNextTurn():void {
     this.turn += 1;
     this.activePlayer = this.players[this.turn % 2];
