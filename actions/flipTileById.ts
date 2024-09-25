@@ -11,10 +11,12 @@ export function flipTileById(id:number, game: Game):void {
 
     if(game.flippedTiles.length > 1) return; // Already two tiles flipped
 
-    if(game.deck[id].revealed == true) return; // Can't select paired tiles or the same tile
+    if(game.deck.tiles[id].revealed == true) return; // Can't select paired tiles or the same tile
 
-    const tile = game.deck[id]
+    const tile = game.deck.tiles[id]
     tile.revealed = true;
+
+    console.log(tile);
 
     // check if the tile was a bear
     if(tile.type == 'Bear'){
