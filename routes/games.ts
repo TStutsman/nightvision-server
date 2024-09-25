@@ -29,6 +29,8 @@ games.get('/:gameId', (req, res) => {
 
     const { activePlayer, players, bearSpotted, gameOver, endGameStatus, deck } = game;
 
+    console.log(req.params.gameId, deck.tiles);
+
     res.json({
         activePlayer: activePlayer.id,
         players,
@@ -54,7 +56,7 @@ games.post('/:gameId/flipTile', (req, res) => {
     const { tileId } = req.body;
     flipTileById(tileId, game);
     
-    console.log(game.deck.tiles)
+    console.log(req.params.gameId, game.deck.tiles)
 
     res.json({
         deck: game.deck.tiles.map(tile => tile.revealed ? tile : { revealed: false })
