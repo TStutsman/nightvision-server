@@ -6,6 +6,8 @@ const app = express();
 const port = process.env.PORT || 8080;
 const callback = () => console.log(`Express server is listening on port ${port}`);
 
+app.use(express.json());
+
 app.use('/api/games', gamesRouter);
 
 app.listen(port, callback);
