@@ -1,9 +1,10 @@
 import express from "express";
+import expressWs from "express-ws";
 import { store } from "../store";
 import { Game } from "../models/game";
-import { flipTileById } from "../actions/flipTileById";
+import { playerAction } from "../actions";
 
-const games = express.Router();
+const games = express.Router() as expressWs.Router;
 
 // Creates a new game and sends the id to the user
 // TODO: send game immediately instead
@@ -20,9 +21,9 @@ games.get('/:gameId', (req, res) => {
     const game:Game = store.getGameById(+req.params.gameId);
 
     if(!game) {
-        res.status = 404;
+        res.statusCode = 404;
         res.json({
-            message: `Unable to find game with id ${req.params.id}`
+            message: `Unable to find game with id ${req.params.gameId}`
         });
         return;
     }
@@ -41,26 +42,39 @@ games.get('/:gameId', (req, res) => {
     })
 });
 
-// Return the state of a specific game
-games.post('/:gameId/flipTile', (req, res) => {
+// Websocket route for in-game actions
+games.ws('/:gameId', (ws, req, next) => {
     const game:Game = store.getGameById(+req.params.gameId);
 
-    if(!game) {
-        res.status = 404;
-        res.json({
-            message: `Unable to find game with id ${req.params.id}`
-        });
-        return;
-    }
+    ws.on('message', (msg: [event: string, data: {tileId: number}]) => {
+        const [ event, data ] = msg;
 
-    const { tileId } = req.body;
-    flipTileById(tileId, game);
+        if(!game) {
+            ws.send('This game does not exist');
+            next();
+        }
+
+        const res:(string | object)[] = playerAction(game, event, data);
+
+        ws.send(res)
+    })
+
+    // if(!game) {
+    //     ws. = 404;
+    //     res.json({
+    //         message: `Unable to find game with id ${req.params.gameId}`
+    //     });
+    //     return;
+    // }
+
+    // const { tileId } = req.body;
+    // flipTileById(tileId, game);
     
-    console.log(req.params.gameId, game.deck.tiles)
+    // console.log(req.params.gameId, game.deck.tiles)
 
-    res.json({
-        deck: game.deck.tiles.map(tile => tile.revealed ? tile : { revealed: false })
-    });
+    // res.json({
+    //     deck: game.deck.tiles.map(tile => tile.revealed ? tile : { revealed: false })
+    // });
 });
 
 export { games as gamesRouter };
