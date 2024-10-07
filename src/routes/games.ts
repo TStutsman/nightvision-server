@@ -1,10 +1,9 @@
 import express from "express";
-import expressWs from "express-ws";
 import { store } from "../store";
 import { Game } from "../models/game";
 import { playerAction } from "../actions";
 
-const games = express.Router() as expressWs.Router;
+const games = express.Router();
 
 // Creates a new game and sends the id to the user
 // TODO: send game immediately instead

@@ -1,6 +1,5 @@
 import express from "express";
 import expressWs from "express-ws";
-import { gamesRouter } from "./routes/games";
 
 const { app } = expressWs(express());
 
@@ -9,6 +8,9 @@ const callback = () => console.log(`Express server is listening on port ${port}`
 
 app.use(express.json());
 
-app.use('/api/games', gamesRouter);
+async function mountRouter(app: expressWs.Application) {
+    app.use('/api/games', (await import('./routes/games')).gamesRouter);
+}
+mountRouter(app);
 
 app.listen(port, callback);
