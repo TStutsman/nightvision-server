@@ -1,6 +1,21 @@
 import { Deck } from './deck';
 import { Tile } from './tile';
 import { Player } from './player';
+import { flipTileById } from 'src/actions/flipTileById';
+import { useFlashlight } from 'src/actions/useFlashlight';
+
+export interface ActionResponse {
+  actionType: string;
+  data?: { 
+      tileId : number,
+      type?: string
+  };
+  error?: string
+}
+
+interface ActionHandler {
+  (data? : { tileId: number }): any
+}
 
 export class Game {
   turn: number;
@@ -33,6 +48,59 @@ export class Game {
     this.flippedTiles = [];
   }
 
+  /**
+   * Static class object with all game-actions
+   * 
+   * These actions must be exactly the same as the websocket
+   * events in order to route to the correct class method implementation
+   */
+  static actions: { [action: string]: (game: Game) => ActionHandler } = {
+    'flipTile': (game: Game) => {
+      return (data?: { tileId: number }):Tile | void => {
+        if(!data) throw Error('Must provide tile id for flipTile');
+        return flipTileById(game, data.tileId);
+      }
+    },
+    'reshuffle': (game: Game) => {
+      return () => game.deck.shuffle();
+    },
+    'flashlight': (game: Game) => {
+      return (data?: { tileId: number }) => {
+        if(!data) throw Error('Must provide tile id for flashlight')
+        return useFlashlight(game, data.tileId);
+      }
+    }
+  }
+
+  /**
+   * This class method links an action 'type' to its implementation
+   * and returns a response to send to a client
+   * 
+   * TODO: uncouple the error handling and response from Game model
+   * 
+   * @param actionType - the game action type (probably the same as the websocket event)
+   * @param data - any data to pass into the action handler
+   * @returns a response object to be sent to the client
+   */
+  action(actionType: string, data?: { tileId: number, type?: string }) {
+    const res:ActionResponse = { actionType, data };
+    const bindActionToGame:(game:Game) => ActionHandler = Game.actions[actionType];
+
+    if(!bindActionToGame) {
+      res.error = `Action named '${actionType}' is not a recognized player action`;
+    } else {
+      const actionHandler:ActionHandler = bindActionToGame(this);
+      try {
+        const tile = actionHandler(data);
+        if(tile) res.data!.type = tile.type
+      } catch (err: unknown) {
+        if(err instanceof Error) console.log(err.message);
+      }
+    }
+
+    return res;
+  }
+
   /** 
    * Updates the active player's score
    * if the two tiles in flippedTiles array
@@ -45,14 +113,14 @@ export class Game {
     const [tile1, tile2] = this.flippedTiles;
 
     if(tile1.type == tile2.type) {
-    // tiles match, so they stay flipped
-    this.activePlayer.points++;
-    this.numTilesPaired += 2;
+      // tiles match, so they stay flipped
+      this.activePlayer.points++;
+      this.numTilesPaired += 2;
 
     } else {
-    // The tiles get flipped back upside down
-    tile1.revealed = false;
-    tile2.revealed = false;
+      // The tiles get flipped back upside down
+      tile1.revealed = false;
+      tile2.revealed = false;
     }
 
     // reset flippedTiles array
@@ -68,16 +136,13 @@ export class Game {
    */
   handleBearTile():void {
     if(this.activePlayer.hasSpray){
-
       // use spray if they have it
       this.activePlayer.hasSpray = false;
       
     } else {
-
       // end the game if bear and no spray
       let winner = this.activePlayer.id;
-      this.endGameStatus = `Player ${winner} Wins`;
-      this.gameOver = true;
+      this.end(`Player ${winner} Wins`);
 
     }
   }
@@ -97,7 +162,7 @@ export class Game {
    * 
    * Ends the game.
    */
-  allTilesFlipped() {
+  allTilesFlipped():void {
     const [{points: score1}, {points: score2}] = this.players;
 
     if(score1 > score2) {
@@ -111,9 +176,9 @@ export class Game {
   }
 
   /**
-   * required @param status: the status to end the game with
-   *
    * Universal function to end the game
+   * 
+   * @param {string} status - the status to end the game with
    */
   end(status: string):void {
     this.endGameStatus = status;
