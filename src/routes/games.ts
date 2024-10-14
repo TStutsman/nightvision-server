@@ -1,9 +1,9 @@
-import express from "express";
+import { Router } from 'websocket-express';
 import { store } from "../store";
 import { Game } from "../models/game";
-import { playerAction } from "../actions";
+import { playerAction, ActionResponse } from "../actions";
 
-const games = express.Router();
+const games = new Router();
 
 // Creates a new game and sends the id to the user
 // TODO: send game immediately instead
@@ -18,6 +18,7 @@ games.get('/new', (_, res) => {
 // Return the state of a specific game
 games.get('/:gameId', (req, res) => {
     const game:Game = store.getGameById(+req.params.gameId);
+    console.log('GET /:gameId:', req.params.gameId, game.deck.tiles);
 
     if(!game) {
         res.statusCode = 404;
@@ -28,8 +29,6 @@ games.get('/:gameId', (req, res) => {
     }
 
     const { activePlayer, players, bearSpotted, gameOver, endGameStatus, deck } = game;
-
-    console.log(req.params.gameId, deck.tiles);
 
     res.json({
         activePlayer: activePlayer.id,
@@ -42,20 +41,24 @@ games.get('/:gameId', (req, res) => {
 });
 
 // Websocket route for in-game actions
-games.ws('/:gameId', (ws, req, next) => {
+games.ws('/:gameId', async (req, res, next) => {
+    const ws = await res.accept();
+
     const game:Game = store.getGameById(+req.params.gameId);
 
-    ws.on('message', (msg: [event: string, data: {tileId: number}]) => {
-        const [ event, data ] = msg;
+    ws.on('message', (buffer: Buffer) => {
+        const { event, data } = JSON.parse(buffer.toString('utf-8'));
+        console.log(event, data)
 
         if(!game) {
             ws.send('This game does not exist');
             next();
         }
 
-        const res:(string | object)[] = playerAction(game, event, data);
+        const res:ActionResponse = playerAction(game, event, data);
 
-        ws.send(res)
+        console.log(res);
+        ws.send(JSON.stringify(res))
     })
 
     // if(!game) {

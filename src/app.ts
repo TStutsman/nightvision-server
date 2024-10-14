@@ -1,16 +1,12 @@
-import express from "express";
-import expressWs from "express-ws";
+import { WebSocketExpress } from "websocket-express";
+import { gamesRouter } from './routes/games';
 
-const { app } = expressWs(express());
+const app = new WebSocketExpress();
 
 const port = process.env.PORT || 8080;
 const callback = () => console.log(`Express server is listening on port ${port}`);
 
-app.use(express.json());
-
-async function mountRouter(app: expressWs.Application) {
-    app.use('/api/games', (await import('./routes/games')).gamesRouter);
-}
-mountRouter(app);
+app.use(WebSocketExpress.json());
+app.use('/api/games', gamesRouter);
 
 app.listen(port, callback);

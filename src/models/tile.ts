@@ -6,8 +6,4 @@ export class Tile {
         this.type = type;
         this.revealed = false;
     }
-
-    flip() {
-        this.revealed = !this.revealed;
-    }
 }

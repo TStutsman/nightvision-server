@@ -3,12 +3,23 @@ import { flipTileById } from "./flipTileById";
 import { reshuffle } from "./reshuffle";
 import { useFlashlight } from "./useFlashlight";
 
-export function playerAction(game: Game, event: string, data: { tileId: number }) {
-    const res: { error: string | undefined } = { error: undefined }
+export interface ActionResponse {
+    eventName: string;
+    data: { 
+        tileId : number,
+        type?: string
+    };
+    error?: string
+}
 
-    switch(event) {
+export function playerAction(game: Game, eventName: string, data: { tileId: number }) {
+    const res: ActionResponse = { eventName, data }
+
+    switch(eventName) {
         case 'flipTile':
-            flipTileById(data.tileId, game);
+            console.log('Event flipTile:')
+            const tile = flipTileById(data.tileId, game);
+            if (tile) res.data.type = tile.type;
             break;
         case 'reshuffle':
             reshuffle(game.deck);
@@ -20,5 +31,5 @@ export function playerAction(game: Game, event: string, data: { tileId: number }
             res.error = 'Not a valid recognized player-action'
     }
 
-    return [ event, res ]
+    return res
 }
