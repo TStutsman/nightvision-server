@@ -32,6 +32,20 @@ export class Game {
   deck: Deck;
   flippedTiles: Tile[];
 
+  static tiles: {[type: string]: number} = {
+    'Pika': 2,
+    'Chipmunk': 2, 
+    'Marmot': 2,
+    'Owl': 2,
+    'Fox': 2,
+    'Weasel': 2,
+    'Raccoon': 2,
+    'Bat': 2,
+    'Frog': 2,
+    'Raven': 2,
+    'Bear': 1,
+  };
+
   constructor() {
     this.turn = 0;
     this.players = [new Player(1), new Player(2)];
@@ -44,7 +58,7 @@ export class Game {
     this.gameOver = false;
     this.endGameStatus = "";
 
-    this.deck = new Deck();
+    this.deck = new Deck(Game.tiles);
     this.flippedTiles = [];
   }
 
@@ -119,8 +133,9 @@ export class Game {
 
     } else {
       // The tiles get flipped back upside down
-      tile1.revealed = false;
-      tile2.revealed = false;
+      tile1.hide();
+      tile2.hide();
+
     }
 
     // reset flippedTiles array

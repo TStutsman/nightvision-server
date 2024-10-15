@@ -24,15 +24,19 @@ export function flipTileById(game: Game, id:number):Tile | void{
     if(game.flippedTiles.length > 1) return;
 
     // Can't select paired tiles or the same tile
-    if(game.deck.tiles[id].revealed == true) return;
+    if(game.deck.tiles[id].isRevealed()) return;
 
     const tile = game.deck.tiles[id]
-    tile.revealed = true;
+    tile.reveal();
 
     // check if the tile was a bear
     if(tile.type == 'Bear') {
         game.handleBearTile();
-        if (game.gameOver) return;
+        if (game.gameOver) return tile;
+
+        // Update whose turn it is
+        game.goToNextTurn();
+        return tile;
     }
 
     game.flippedTiles.push(tile);
@@ -45,10 +49,10 @@ export function flipTileById(game: Game, id:number):Tile | void{
         if(game.numTilesPaired > 19){
             game.allTilesFlipped();
         }
-    }
 
-    // Update whose turn it is
-    game.goToNextTurn();
+        // Update whose turn it is
+        game.goToNextTurn();
+    }
 
     return tile;
 }

@@ -35,7 +35,7 @@ games.get('/:gameId', (req, res) => {
         bearSpotted,
         gameOver,
         endGameStatus,
-        deck: deck.tiles.map(tile => tile.revealed ? tile : { revealed: false })
+        deck: deck.tiles.map(tile => tile.isRevealed() ? tile : { revealed: false })
     })
 });
 
@@ -60,7 +60,19 @@ games.ws('/:gameId', async (req, res, next) => {
         const res:ActionResponse = game.action(actionType, data);
 
         console.log('res:', res);
-        ws.send(JSON.stringify(res))
+        ws.send(JSON.stringify(res));
+
+        if(game.flippedTiles.length > 1) {
+            const [tile1, tile2] = game.flippedTiles;
+            const res:string = JSON.stringify({
+                action: 'noMatch',
+                data: {
+                    tileId1: tile1,
+                    tileId2: tile2
+                }
+            })
+            ws.send(res);
+        }
     })
 
     // if(!game) {

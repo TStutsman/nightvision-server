@@ -1,18 +1,23 @@
 import { Tile } from './tile';
 
 export class Deck {
+    values: {[type: string]: number}
     tiles: Tile[];
     bearTile: Tile;
-    
-    static animals = ['Pika', 'Chipmunk', 'Marmot', 'Owl', 'Fox', 'Weasel', 'Raccoon', 'Bat', 'Frog', 'Raven'];
-    // Map revealed and illuminated statuses onto each animal tile
-    static animalTiles = () => Deck.animals.map(animal => new Tile(animal));
 
-    constructor() {
-        this.bearTile = new Tile('Bear');
+    constructor(amounts: {[type: string]: number}) {
+        this.values = amounts;
 
-        // Create a shuffled deck of all pairs and bear tile
-        this.tiles = Deck.shuffle([...Deck.animalTiles(), ...Deck.animalTiles(), this.bearTile]);
+        // Creates 'amount' of each value and adds them to deck's tiles
+        Object.entries(this.values).map(([value, amount]) => {
+            for(let i = 0; i < amount; i++){
+                const newTile = new Tile(this.tiles.length, value);
+                this.tiles.push(newTile);
+            }
+        });
+
+        // Shuffle the deck
+        this.shuffle();
     }
 
     /**
@@ -33,9 +38,12 @@ export class Deck {
           currentIndex--;
       
           // And swap it with the current element.
-          const swap_tile:Tile = this.tiles[randomIndex];
+          const swapTile:Tile = this.tiles[randomIndex];
+          const swapId:number = swapTile.getId();
           this.tiles[randomIndex] = this.tiles[currentIndex];
-          this.tiles[currentIndex] = swap_tile;
+          this.tiles[randomIndex].setId(this.tiles[currentIndex].getId());
+          this.tiles[currentIndex] = swapTile;
+          this.tiles[currentIndex].setId(swapId);
         }
     };
 
@@ -68,7 +76,8 @@ export class Deck {
     };
 
     reset() {
-        // Create a new shuffled deck from fresh tiles and bear tile
-        this.tiles = Deck.shuffle([...Deck.animalTiles(), ...Deck.animalTiles(), this.bearTile]);
+        // Hide all the tiles in the deck, and shuffle them
+        this.tiles.forEach(tile => tile.hide());
+        this.shuffle();
     }
 }
