@@ -35,7 +35,7 @@ games.get('/:gameId', (req, res) => {
         bearSpotted,
         gameOver,
         endGameStatus,
-        deck: deck.tiles.map(tile => tile.isRevealed() ? tile : { revealed: false })
+        deck: deck.getTiles()
     })
 });
 
@@ -63,34 +63,17 @@ games.ws('/:gameId', async (req, res, next) => {
         ws.send(JSON.stringify(res));
 
         if(game.flippedTiles.length > 1) {
-            const [tile1, tile2] = game.flippedTiles;
+            const [tile1, tile2] = game.hideFlippedTiles();
             const res:string = JSON.stringify({
-                action: 'noMatch',
+                actionType: 'noMatch',
                 data: {
-                    tileId1: tile1,
-                    tileId2: tile2
+                    tileId1: tile1.getId(),
+                    tileId2: tile2.getId()
                 }
-            })
+            });
             ws.send(res);
         }
     })
-
-    // if(!game) {
-    //     ws. = 404;
-    //     res.json({
-    //         message: `Unable to find game with id ${req.params.gameId}`
-    //     });
-    //     return;
-    // }
-
-    // const { tileId } = req.body;
-    // flipTileById(tileId, game);
-    
-    // console.log(req.params.gameId, game.deck.tiles)
-
-    // res.json({
-    //     deck: game.deck.tiles.map(tile => tile.revealed ? tile : { revealed: false })
-    // });
 });
 
 export { games as gamesRouter };

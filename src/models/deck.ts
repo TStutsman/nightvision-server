@@ -3,10 +3,10 @@ import { Tile } from './tile';
 export class Deck {
     values: {[type: string]: number}
     tiles: Tile[];
-    bearTile: Tile;
 
     constructor(amounts: {[type: string]: number}) {
         this.values = amounts;
+        this.tiles = [];
 
         // Creates 'amount' of each value and adds them to deck's tiles
         Object.entries(this.values).map(([value, amount]) => {
@@ -18,6 +18,10 @@ export class Deck {
 
         // Shuffle the deck
         this.shuffle();
+    }
+
+    getTiles() {
+        return this.tiles.map(tile => tile.isRevealed() ? tile.revealed() : tile.hidden());
     }
 
     /**
@@ -38,12 +42,13 @@ export class Deck {
           currentIndex--;
       
           // And swap it with the current element.
-          const swapTile:Tile = this.tiles[randomIndex];
-          const swapId:number = swapTile.getId();
+          const randomTile:Tile = this.tiles[randomIndex];
+
           this.tiles[randomIndex] = this.tiles[currentIndex];
-          this.tiles[randomIndex].setId(this.tiles[currentIndex].getId());
-          this.tiles[currentIndex] = swapTile;
-          this.tiles[currentIndex].setId(swapId);
+          this.tiles[randomIndex].setId(randomIndex);
+
+          this.tiles[currentIndex] = randomTile;
+          this.tiles[currentIndex].setId(currentIndex);
         }
     };
 

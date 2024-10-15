@@ -43,7 +43,11 @@ export function flipTileById(game: Game, id:number):Tile | void{
 
     // Check tiles for match if two are flipped
     if(game.flippedTiles.length > 1){
-        game.checkForMatch();
+        const [tile1, tile2] = game.flippedTiles;
+
+        if(tile1.type === tile2.type) {
+            game.countMatch();
+        }
 
         // Check for end of game
         if(game.numTilesPaired > 19){

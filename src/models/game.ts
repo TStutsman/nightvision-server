@@ -120,26 +120,26 @@ export class Game {
    * if the two tiles in flippedTiles array
    * have matching types
    * 
-   * Reflips tiles on non-matching and removes
-   * from 'flipped' array
+   * Empties the flippedTile array
    */
-  checkForMatch():void {
-    const [tile1, tile2] = this.flippedTiles;
-
-    if(tile1.type == tile2.type) {
-      // tiles match, so they stay flipped
-      this.activePlayer.points++;
-      this.numTilesPaired += 2;
-
-    } else {
-      // The tiles get flipped back upside down
-      tile1.hide();
-      tile2.hide();
-
-    }
-
-    // reset flippedTiles array
+  countMatch():void {
+    this.activePlayer.points++;
+    this.numTilesPaired += 2;
     this.flippedTiles = []
+  }
+
+  /**
+   * Hides the current flipped tiles
+   * and empties the flippedTiles array
+   * 
+   * @returns an array containing the two hidden tiles
+   */
+  hideFlippedTiles():Tile[] {
+    const [tile1, tile2] = this.flippedTiles;
+    tile1.hide();
+    tile2.hide();
+    this.flippedTiles = [];
+    return [tile1, tile2];
   }
 
   /**

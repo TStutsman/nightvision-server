@@ -29,10 +29,17 @@ export class Tile {
         return this._revealed;
     }
 
-    toPojo() {
+    revealed() {
         return {
             id: this._id,
             type: this.type,
+            revealed: this._revealed
+        }
+    }
+
+    hidden() {
+        return {
+            id: this._id,
             revealed: this._revealed
         }
     }
