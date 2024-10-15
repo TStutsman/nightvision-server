@@ -71,6 +71,7 @@ games.ws('/:gameId', async (req, res, next) => {
                     tileId2: tile2.getId()
                 }
             });
+            console.log('res:', res);
             ws.send(res);
         }
     })

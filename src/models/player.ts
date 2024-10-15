@@ -8,4 +8,8 @@ export class Player {
         this.hasSpray = false;
         this.points = 0;
     }
+
+    buySpray() {
+        this.hasSpray = true;
+    }
 }

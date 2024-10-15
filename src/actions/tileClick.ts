@@ -9,22 +9,22 @@ import { Tile } from "src/models/tile";
  * 
  * @param game - the game the tile belongs to
  * @param id - the id of the tile being flipped
- * @returns undefined if an action is used or the game ends
+ * @returns a status message if an action is used or the game ends
  * else: the data for the flipped Tile
  */
-export function flipTileById(game: Game, id:number):Tile | void{
+export function tileClick(game: Game, id:number):Tile | StatusMessage {
     if(game.flashlightIsOn){
         game.bearSpotted = useFlashlight(game, id);
         game.flashlightIsOn = false;
         game.goToNextTurn();
-        return;
+        return {error: 'flashlight used'};
     }
 
     // Already two tiles flipped
-    if(game.flippedTiles.length > 1) return;
+    if(game.flippedTiles.length > 1) return {error: "two tiles already flipped"};
 
     // Can't select paired tiles or the same tile
-    if(game.deck.tiles[id].isRevealed()) return;
+    if(game.deck.tiles[id].isRevealed()) return {error: "can't flip a tile that's already been flipped"};
 
     const tile = game.deck.tiles[id]
     tile.reveal();
@@ -52,6 +52,7 @@ export function flipTileById(game: Game, id:number):Tile | void{
         // Check for end of game
         if(game.numTilesPaired > 19){
             game.allTilesFlipped();
+            return {error: 'game ended'};
         }
 
         // Update whose turn it is

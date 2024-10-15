@@ -1,8 +1,7 @@
 import { Deck } from './deck';
 import { Tile } from './tile';
 import { Player } from './player';
-import { flipTileById } from 'src/actions/flipTileById';
-import { useFlashlight } from 'src/actions/useFlashlight';
+import { tileClick } from 'src/actions/tileClick';
 
 export interface ActionResponse {
   actionType: string;
@@ -69,20 +68,26 @@ export class Game {
    * events in order to route to the correct class method implementation
    */
   static actions: { [action: string]: (game: Game) => ActionHandler } = {
-    'flipTile': (game: Game) => {
-      return (data?: { tileId: number }):Tile | void => {
-        if(!data) throw Error('Must provide tile id for flipTile');
-        return flipTileById(game, data.tileId);
+    'tileClick': (game: Game) => {
+      return (data?: { tileId: number }):Tile | StatusMessage => {
+        if(!data) throw Error('Must provide tile id for tileClick action');
+        return tileClick(game, data.tileId);
+      }
+    },
+    'bearSpray': (game:Game) => {
+      return () => {
+        game.activePlayer.buySpray();
+        game.goToNextTurn();
       }
     },
     'reshuffle': (game: Game) => {
-      return () => game.deck.shuffle();
+      return () => {
+        game.deck.shuffle();
+        game.goToNextTurn();
+      }
     },
     'flashlight': (game: Game) => {
-      return (data?: { tileId: number }) => {
-        if(!data) throw Error('Must provide tile id for flashlight')
-        return useFlashlight(game, data.tileId);
-      }
+      return () => game.flashlightIsOn = true;
     }
   }
 
