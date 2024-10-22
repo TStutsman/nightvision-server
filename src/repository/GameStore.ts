@@ -1,7 +1,7 @@
-import { Game } from "./models/game";
+import { GameService } from "../service/GameService";
 
 class GameStore{
-    activeGames: { [id:number]: Game };
+    activeGames: { [id:number]: GameService };
     idCounter: number;
 
     constructor() {
@@ -11,14 +11,14 @@ class GameStore{
 
     /** Creates a new game in the store and returns the id */
     createGame():number {
-        const newGame = new Game();
-        this.activeGames[this.idCounter] = newGame;
+        const newGameService = new GameService();
+        this.activeGames[this.idCounter] = newGameService;
         this.idCounter += 1;
 
         return this.idCounter - 1;
     }
 
-    getGameById(gameId: number) {
+    getGameServiceById(gameId: number) {
         return this.activeGames[gameId];
     }
 

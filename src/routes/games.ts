@@ -1,6 +1,6 @@
 import { Router } from 'websocket-express';
-import { store } from "../store";
-import { Game, ActionResponse } from "../models/game";
+import { store } from "../repository/GameStore";
+import { GameService } from "../service/GameService";
 
 const games = new Router();
 
@@ -16,7 +16,7 @@ games.get('/new', (_, res) => {
 
 // Return the state of a specific game
 games.get('/:gameId', (req, res) => {
-    const game:Game = store.getGameById(+req.params.gameId);
+    const game:GameService = store.getGameServiceById(+req.params.gameId);
     console.log('GET /:gameId:', req.params.gameId);
 
     if(!game) {
@@ -47,28 +47,67 @@ games.get('/:gameId', (req, res) => {
 games.ws('/:gameId', async (req, res, next) => {
     const ws = await res.accept();
 
-    const game:Game = store.getGameById(+req.params.gameId);
+    const gameService:GameService = store.getGameServiceById(+req.params.gameId);
+
+    if(!gameService) {
+        res.json({
+            error: 'This game does not exist',
+        });
+        next();
+    }
 
     ws.on('message', (buffer: Buffer) => {
-        const { event: actionType, data } = JSON.parse(buffer.toString('utf-8'));
+        const json = String(buffer)
+        const { event: actionType, data } = JSON.parse(json);
 
-        if(!game) {
-            ws.send('This game does not exist');
-            next();
+        switch (actionType) {
+            case 'tileClick': {
+                if(!data) {
+                    ws.send(JSON.stringify({error: 'Must provide tile id for tileClick action'}));
+                    return;
+                }
+
+                const res = gameService.tileClick(data.tileId);
+                ws.send(JSON.stringify(res));
+
+                break;
+            }
+            case 'bearSpray': {
+                gameService.buySpray();
+                break;
+            }
+            case 'reshuffle': {
+                gameService.reshuffle();
+                break;
+            }
+            case 'flashlight': {
+                gameService.flashlightIsOn = true;
+                break;
+            }
+            default: {
+
+            }
         }
 
-        const res:ActionResponse = game.action(actionType, data);
-
-        console.log('res:', res);
-        ws.send(JSON.stringify(res));
-
-        if(game.flippedTiles.length > 1) {
-            const [tile1, tile2] = game.hideFlippedTiles();
+        if(gameService.flippedTiles.length > 1) {
+            const [tile1, tile2] = gameService.hideFlippedTiles();
             const res:string = JSON.stringify({
                 actionType: 'noMatch',
                 data: {
                     tileId1: tile1.getId(),
-                    tileId2: tile2.getId()
+                    tileId2: tile2.getId(),
+                    playerId: gameService.activePlayer.id,
+                }
+            });
+            console.log('res:', res);
+            ws.send(res);
+        }
+
+        if(gameService.gameOver) {
+            const res:string = JSON.stringify({
+                actionType: 'endGame',
+                data: {
+                    endGameStatus: gameService.endGameStatus,
                 }
             });
             console.log('res:', res);
