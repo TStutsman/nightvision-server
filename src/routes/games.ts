@@ -1,6 +1,7 @@
 import { Router } from 'websocket-express';
 import { store } from "../repository/GameStore";
 import { GameService } from "../service/GameService";
+import { GameUpdate } from 'src/model/GameUpdate';
 
 const games = new Router();
 
@@ -60,60 +61,59 @@ games.ws('/:gameId', async (req, res, next) => {
         const json = String(buffer)
         const { event: actionType, data } = JSON.parse(json);
 
-        switch (actionType) {
-            case 'tileClick': {
-                if(!data) {
-                    ws.send(JSON.stringify({error: 'Must provide tile id for tileClick action'}));
-                    return;
+        function handleAction(actionType:string, data:any):GameUpdate | ErrorMessage | void {
+            switch (actionType) {
+                case 'tileClick': {
+                    if(!data) {
+                        return { error: 'Must provide tile id for tileClick action' };
+                    }
+    
+                    const res = gameService.tileClick(data.tileId);
+                    return res;
                 }
-
-                const res = gameService.tileClick(data.tileId);
-                ws.send(JSON.stringify(res));
-
-                break;
-            }
-            case 'bearSpray': {
-                gameService.buySpray();
-                break;
-            }
-            case 'reshuffle': {
-                gameService.reshuffle();
-                break;
-            }
-            case 'flashlight': {
-                gameService.flashlightIsOn = true;
-                break;
-            }
-            default: {
-
+                case 'bearSpray': {
+                    return gameService.buySpray();
+                }
+                case 'reshuffle': {
+                    return gameService.reshuffle();
+                }
+                case 'flashlight': {
+                    return gameService.turnOnFlashlight();
+                }
+                default: {
+                    return { error: `Action ${actionType} not recognized`}
+                }
             }
         }
 
-        if(gameService.flippedTiles.length > 1) {
-            const [tile1, tile2] = gameService.hideFlippedTiles();
-            const res:string = JSON.stringify({
-                actionType: 'noMatch',
-                data: {
-                    tileId1: tile1.getId(),
-                    tileId2: tile2.getId(),
-                    playerId: gameService.activePlayer.id,
-                }
-            });
-            console.log('res:', res);
-            ws.send(res);
-        }
-
-        if(gameService.gameOver) {
-            const res:string = JSON.stringify({
-                actionType: 'endGame',
-                data: {
-                    endGameStatus: gameService.endGameStatus,
-                }
-            });
-            console.log('res:', res);
-            ws.send(res);
-        }
+        const res = handleAction(actionType, data);
+        ws.send(JSON.stringify(res));
     })
 });
 
 export { games as gamesRouter };
+
+// if(gameService.flippedTiles.length > 1) {
+//     const [tile1, tile2] = gameService.hideFlippedTiles();
+//     const res:string = JSON.stringify({
+//         actionType: 'noMatch',
+//         data: {
+//             tileId1: tile1.getId(),
+//             tileId2: tile2.getId(),
+//             playerId: gameService.activePlayer.id,
+//         }
+//     });
+//     console.log('res:', res);
+//     ws.send(res);
+// }
+
+// if(gameService.gameOver) {
+//     const res:string = JSON.stringify({
+//         actionType: 'endGame',
+//         data: {
+//             endGameStatus: gameService.endGameStatus,
+//         }
+//     });
+//     console.log('res:', res);
+//     ws.send(res);
+// }

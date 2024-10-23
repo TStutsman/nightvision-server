@@ -1,4 +1,5 @@
 import { Game } from "src/model/Game";
+import { GameUpdate } from "src/model/GameUpdate";
 import { Tile } from "src/model/Tile";
 
 export class GameService extends Game {
@@ -15,19 +16,19 @@ export class GameService extends Game {
      * @returns a status message if an action is used or the game ends
      * else: the data for the flipped Tile
      */
-    tileClick(id:number):Tile | StatusMessage {
+    tileClick(id:number):GameUpdate {
         if(this.flashlightIsOn){
             this.bearSpotted = this.useFlashlight(id);
             this.flashlightIsOn = false;
             this.goToNextTurn();
-            return {error: 'flashlight used'};
+            return new GameUpdate('used flashlight');
         }
 
         // Already two tiles flipped
-        if(this.flippedTiles.length > 1) return {error: "two tiles already flipped"};
+        if(this.flippedTiles.length > 1) return new GameUpdate("two tiles already flipped", true)
 
         // Can't select paired tiles or the same tile
-        if(this.deck.tiles[id].isRevealed()) return {error: "can't flip a tile that's already been flipped"};
+        if(this.deck.tiles[id].isRevealed()) return new GameUpdate("can't flip a tile that's already been flipped", true);
 
         const tile = this.deck.tiles[id]
         tile.reveal();
@@ -35,11 +36,18 @@ export class GameService extends Game {
         // check if the tile was a bear
         if(tile.type == 'Bear') {
             this.handleBearTile();
-            if (this.gameOver) return tile;
+            if (this.gameOver) {
+                const update = new GameUpdate('game over')
+                update.setData(tile);
+                return update;
+            }
 
             // Update whose turn it is
             this.goToNextTurn();
-            return tile;
+
+            const update = new GameUpdate('');
+            update.setData(tile)
+            return update;
         }
 
         this.flippedTiles.push(tile);
@@ -55,14 +63,20 @@ export class GameService extends Game {
             // Check for end of game
             if(this.numTilesPaired > 19){
                 this.allTilesFlipped();
-                return {error: 'this ended'};
+                return new GameUpdate('game ended');
             }
 
             // Update whose turn it is
             this.goToNextTurn();
         }
 
-        return tile;
+        const update = new GameUpdate('tile flipped');
+        update.setData(tile);
+        return update;
+    }
+
+    turnOnFlashlight():void {
+        this.flashlightIsOn = true;
     }
 
     /**
@@ -112,9 +126,9 @@ export class GameService extends Game {
      * Empties the flippedTile array
      */
     countMatch():void {
-    this.activePlayer.points++;
-    this.numTilesPaired += 2;
-    this.flippedTiles = []
+        this.activePlayer.points++;
+        this.numTilesPaired += 2;
+        this.flippedTiles = []
     }
 
     /**
@@ -124,11 +138,11 @@ export class GameService extends Game {
      * @returns an array containing the two hidden tiles
      */
     hideFlippedTiles():Tile[] {
-    const [tile1, tile2] = this.flippedTiles;
-    tile1.hide();
-    tile2.hide();
-    this.flippedTiles = [];
-    return [tile1, tile2];
+        const [tile1, tile2] = this.flippedTiles;
+        tile1.hide();
+        tile2.hide();
+        this.flippedTiles = [];
+        return [tile1, tile2];
     }
 
     /**
@@ -139,16 +153,16 @@ export class GameService extends Game {
      * the game
      */
     handleBearTile():void {
-    if(this.activePlayer.hasSpray){
-        // use spray if they have it
-        this.activePlayer.hasSpray = false;
-        
-    } else {
-        // end the game if bear and no spray
-        let winner = this.activePlayer.id;
-        this.end(`Player ${winner} Wins`);
+        if(this.activePlayer.hasSpray){
+            // use spray if they have it
+            this.activePlayer.hasSpray = false;
+            
+        } else {
+            // end the game if bear and no spray
+            let winner = this.activePlayer.id;
+            this.end(`Player ${winner} Wins`);
 
-    }
+        }
     }
 
     /**
@@ -156,8 +170,8 @@ export class GameService extends Game {
      * and calculates the next active player
      */
     goToNextTurn():void {
-    this.turn += 1;
-    this.activePlayer = this.players[this.turn % 2];
+        this.turn += 1;
+        this.activePlayer = this.players[this.turn % 2];
     }
 
     /**
@@ -167,26 +181,26 @@ export class GameService extends Game {
      * Ends the game.
      */
     allTilesFlipped():void {
-    const [{points: score1}, {points: score2}] = this.players;
+        const [{points: score1}, {points: score2}] = this.players;
 
-    if(score1 > score2) {
-        this.end(`Player 1 Wins!`);
+        if(score1 > score2) {
+            this.end(`Player 1 Wins!`);
 
-    } else if (score2 > score1) {
-        this.end(`Player 2 Wins!`);
-    }
+        } else if (score2 > score1) {
+            this.end(`Player 2 Wins!`);
+        }
 
-    this.end("It's a tie");
-    }
+        this.end("It's a tie");
+        }
 
-    /**
-     * Universal function to end the game
-     * 
-     * @param {string} status - the status to end the game with
-     */
-    end(status: string):void {
-    this.endGameStatus = status;
-    this.gameOver = true;
+        /**
+         * Universal function to end the game
+         * 
+         * @param {string} status - the status to end the game with
+         */
+        end(status: string):void {
+        this.endGameStatus = status;
+        this.gameOver = true;
     }
 
     /**
@@ -195,23 +209,23 @@ export class GameService extends Game {
      * The turn counter is set to start (0)
      */
     resetGame():void {
-    // Flip all the tiles over
-    this.deck.reset();
+        // Flip all the tiles over
+        this.deck.reset();
 
-    // Take away bear sprays and reset points
-    this.players.forEach((player) => {
-        player.hasSpray = false;
-        player.points = 0;
-    });
+        // Take away bear sprays and reset points
+        this.players.forEach((player) => {
+            player.hasSpray = false;
+            player.points = 0;
+        });
 
-    // Remove bear spotted status
-    this.bearSpotted = false;
+        // Remove bear spotted status
+        this.bearSpotted = false;
 
-    // Make it player 1's turn
-    this.turn = 0;
+        // Make it player 1's turn
+        this.turn = 0;
 
-    // And reset this.gameOver and this.endGameStatus
-    this.endGameStatus = "";
-    this.gameOver = false;
+        // And reset this.gameOver and this.endGameStatus
+        this.endGameStatus = "";
+        this.gameOver = false;
     }
 }
