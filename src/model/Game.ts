@@ -4,7 +4,7 @@ import { Player } from './Player';
 
 export class Game {
   turn: number;
-  players: Player[];
+  players: {[id:number]: Player};
   activePlayer: Player;
 
   flashlightIsOn: boolean;
@@ -33,8 +33,11 @@ export class Game {
 
   constructor() {
     this.turn = 0;
-    this.players = [new Player(1), new Player(2)];
-    this.activePlayer = this.players[0];
+    this.players = {
+      1: new Player(1), 
+      2: new Player(2),
+    };
+    this.activePlayer = this.players[1];
 
     this.flashlightIsOn = false;
     this.bearSpotted = false;

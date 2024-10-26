@@ -61,7 +61,7 @@ games.ws('/:gameId', async (req, res, next) => {
         const json = String(buffer)
         const { event: actionType, data } = JSON.parse(json);
 
-        function handleAction(actionType:string, data:any):GameUpdate | ErrorMessage {
+        function handleAction(actionType:string, data:any):GameUpdate[] | PlayerError {
             switch (actionType) {
                 case 'tileClick': {
                     if(!data) return new PlayerError('Must provide tile id for tileClick action');
@@ -83,19 +83,21 @@ games.ws('/:gameId', async (req, res, next) => {
             }
         }
 
-        const gameUpdate = handleAction(actionType, data);
+        const gameUpdates = handleAction(actionType, data);
 
-        if (gameUpdate instanceof PlayerError){
+        if (gameUpdates instanceof PlayerError){
             ws.send(JSON.stringify({
-                actionType: gameUpdate.actionType,
-                error: gameUpdate.message
+                actionType: gameUpdates.actionType,
+                error: gameUpdates.message
             }));
         } else {
-            ws.send(JSON.stringify({
-                actionType: gameUpdate.actionType,
-                message: gameUpdate.message,
-                data: gameUpdate.data
-            }));
+            for(let gameUpdate of gameUpdates) {
+                ws.send(JSON.stringify({
+                    actionType: gameUpdate.actionType,
+                    message: gameUpdate.message,
+                    data: gameUpdate.data
+                }));
+            }
         }
     })
 });

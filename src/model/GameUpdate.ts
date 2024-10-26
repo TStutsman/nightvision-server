@@ -1,16 +1,21 @@
-interface TileData {
-    id: number;
+interface EventData {
+    id?: number;
     type?: string;
-    revealed: boolean;
+    revealed?: boolean;
+    tileId1?: number;
+    tileId2?: number;
+    nextPlayerId?: number;
+    playerId?: number;
+    score?: number;
 }
 
 export class GameUpdate {
     actionType:string;
     message:string;
-    data?:TileData;
+    data?:EventData;
     error?:boolean;
 
-    constructor(actionType:string, message:string, data?:TileData) {
+    constructor(actionType:string, message:string, data?:EventData) {
         this.actionType = actionType;
         this.message = message;
         this.data = data;
