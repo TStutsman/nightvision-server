@@ -20,6 +20,23 @@ export class Deck {
         this.shuffle();
     }
 
+    /**
+     * Reveals the tile at the specified index and returns the revealed tile's data
+     * @param idx - the index of the tile to reveal
+     * @returns the data of the revealed tile
+     */
+    revealTile(idx: number) {
+        const tile = this.tiles[idx];
+        tile.reveal();
+        return tile;
+    }
+
+    /**
+     * Deck class method to retrieve tiles in a format suitable for sending to a client
+     * 
+     * @returns tile data for all tiles, with only revealed information based on
+     * the tile's revealed status
+     */
     getTiles() {
         return this.tiles.map(tile => tile.isRevealed() ? tile.revealed() : tile.hidden());
     }

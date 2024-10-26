@@ -9,7 +9,8 @@ export class Player {
         this.points = 0;
     }
 
-    buySpray() {
+    /** Set's the player's bear spray flag to true */
+    buySpray():void {
         this.hasSpray = true;
     }
 }
