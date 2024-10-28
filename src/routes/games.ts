@@ -28,16 +28,16 @@ games.get('/:gameId', (req, res) => {
         return;
     }
 
-    const { activePlayer, players, bearSpotted, gameOver, endGameStatus, deck } = game;
+    const { players, bearSpotted, gameOver, endGameStatus, deck } = game;
 
     res.json({
-        activePlayer: activePlayer.id,
+        activePlayer: game.activePlayer().id,
         players,
         bearSpotted,
         gameOver,
         endGameStatus,
         deck: deck.getTiles()
-    })
+    });
 });
 
 /**
@@ -76,6 +76,9 @@ games.ws('/:gameId', async (req, res, next) => {
                 }
                 case 'flashlight': {
                     return gameService.turnOnFlashlight();
+                }
+                case 'playAgain': {
+                    return gameService.resetGame();
                 }
                 default: {
                     return new PlayerError(`Action ${actionType} not recognized`);

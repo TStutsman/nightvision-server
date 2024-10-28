@@ -7,6 +7,12 @@ interface EventData {
     nextPlayerId?: number;
     playerId?: number;
     score?: number;
+    
+    players?: any;
+    bearSpotted?: boolean;
+    gameOver?: boolean;
+    endGameStatus?: string;
+    deck?: any;
 }
 
 export class GameUpdate {

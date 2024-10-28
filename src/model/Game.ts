@@ -5,7 +5,6 @@ import { Player } from './Player';
 export class Game {
   turn: number;
   players: {[id:number]: Player};
-  activePlayer: Player;
 
   flashlightIsOn: boolean;
   bearSpotted: boolean;
@@ -37,7 +36,6 @@ export class Game {
       1: new Player(1), 
       2: new Player(2),
     };
-    this.activePlayer = this.players[1];
 
     this.flashlightIsOn = false;
     this.bearSpotted = false;
@@ -48,5 +46,12 @@ export class Game {
 
     this.deck = new Deck(Game.tiles);
     this.flippedTiles = [];
+  }
+
+  /**
+   * Class method to return the Player whose turn it is
+  */
+  activePlayer():Player {
+    return this.players[(this.turn % 2) + 1];
   }
 }

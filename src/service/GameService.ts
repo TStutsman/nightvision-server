@@ -37,7 +37,6 @@ export class GameService extends Game {
 
         if(tile.type == 'Bear') {
             gameUpdates.push(this.handleBearTile());
-            return gameUpdates;
         }
 
         // Check tiles for match if two are flipped
@@ -45,12 +44,13 @@ export class GameService extends Game {
             const [tile1, tile2] = this.flippedTiles;
 
             if(tile1.type === tile2.type) {
-                this.activePlayer.points++;
+                const activePlayer = this.activePlayer();
+                activePlayer.points++;
                 this.numTilesPaired += 2;
 
                 const data = {
-                    playerId: this.activePlayer.id,
-                    score: this.activePlayer.points
+                    playerId: activePlayer.id,
+                    score: activePlayer.points
                 };
 
                 gameUpdates.push(new GameUpdate('match', 'tiles matched', data));
@@ -63,12 +63,12 @@ export class GameService extends Game {
             } else {
                 tile1.hide();
                 tile2.hide();
-                this.goToNextTurn();
+                this.turn += 1;
                 
                 const data = {
                     tileId1: tile1.getId(),
                     tileId2: tile2.getId(),
-                    nextPlayerId: this.activePlayer.id
+                    nextPlayerId: this.activePlayer().id
                 }
 
                 gameUpdates.push(new GameUpdate('noMatch', "tiles did not match", data));
@@ -87,9 +87,9 @@ export class GameService extends Game {
      * 
      * @returns a GameUpdate indicating the flashlight was turned on
      */
-    turnOnFlashlight():GameUpdate {
+    turnOnFlashlight():GameUpdate[] {
         this.flashlightIsOn = true;
-        return new GameUpdate('flashlight', 'flashlight turned on');
+        return [new GameUpdate('flashlight', 'flashlight turned on')];
     }
 
     /**
@@ -113,34 +113,34 @@ export class GameService extends Game {
         
         // Turn off the flashlight, and end the turn
         this.flashlightIsOn = false;
-        this.goToNextTurn();
+        this.turn += 1;
 
-        return new GameUpdate('tileClick', 'Bear ' + this.bearSpotted ? 'spotted' : 'not spotted');
+        return new GameUpdate('tileClick', 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted'));
     }
 
     /**
      * Uses the player's turn to purchase bear spray
      */
     buySpray():GameUpdate[] {
-        this.activePlayer.buySpray();
-        const purchaser = this.activePlayer;
+        const purchaser = this.activePlayer();
+        purchaser.buySpray();
 
-        this.goToNextTurn();
+        this.turn += 1;
         const data = {
             playerId: purchaser.id,
-            nextPlayerId: this.activePlayer.id,
+            nextPlayerId: this.activePlayer().id,
         }
-        
+
         return [new GameUpdate('bearSpray', 'bear spray purchased', data)];
     }
 
     /**
      * Uses the player's turn to shuffle the deck
      */
-    reshuffle():GameUpdate {
+    reshuffle():GameUpdate[] {
         this.deck.shuffle();
-        this.goToNextTurn();
-        return new GameUpdate('reshuffle', 'deck reshuffled')
+        this.turn += 1;
+        return [new GameUpdate('reshuffle', 'deck reshuffled')];
     }
 
     /**
@@ -153,26 +153,19 @@ export class GameService extends Game {
      * @returns a GameUpdate indicating whether the game has ended
      */
     handleBearTile():GameUpdate {
-        if(this.activePlayer.hasSpray){
+        const activePlayer = this.activePlayer();
+        if(activePlayer.hasSpray){
             // use spray if they have it
-            this.activePlayer.hasSpray = false;
-            return new GameUpdate('tileClick', 'Player was saved by bear spray');
+            activePlayer.hasSpray = false;
+            return new GameUpdate('bearSprayUsed', 'Player was saved by bear spray', { playerId: activePlayer.id });
             
         } else {
             // end the game if bear and no spray
-            let winner = this.activePlayer.id;
-            this.endGameStatus = `Player ${winner} Wins`;
+            this.turn += 1;
+            let winner = this.activePlayer();
+            this.endGameStatus = `Player ${winner.id} Wins`;
             return this.end();
         }
-    }
-
-    /**
-     * Increments the game's turn counter
-     * and calculates the next active player
-     */
-    goToNextTurn():void {
-        this.turn += 1;
-        this.activePlayer = this.players[(this.turn % 2) + 1];
     }
 
     /**
@@ -209,7 +202,7 @@ export class GameService extends Game {
      * Player abilities and points are reset
      * The turn counter is set to start (0)
      */
-    resetGame():void {
+    resetGame():GameUpdate[] {
         // Flip all the tiles over
         this.deck.reset();
 
@@ -228,5 +221,16 @@ export class GameService extends Game {
         // And reset this.gameOver and this.endGameStatus
         this.endGameStatus = "";
         this.gameOver = false;
+
+        const data = {
+            activePlayer: this.activePlayer().id,
+            players: this.players,
+            bearSpotted: this.bearSpotted,
+            gameOver: false,
+            endGameStatus: '',
+            deck: this.deck.getTiles(),
+        };
+
+        return [new GameUpdate('gameReset', 'New game started', data)];
     }
 }
