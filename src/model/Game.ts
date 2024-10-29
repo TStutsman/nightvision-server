@@ -54,4 +54,20 @@ export class Game {
   activePlayer():Player {
     return this.players[(this.turn % 2) + 1];
   }
+
+  /**
+   * Returns the player with the most points
+   * 
+   * In the case of a tie returns undefined
+   */
+  winningPlayer():Player | void {
+    const { 1: player1, 2: player2 } = this.players;
+
+    if(player1.points > player2.points) {
+        return player1;
+
+    } else if (player2.points > player1.points) {
+        return player2;
+    }
+  }
 }

@@ -57,6 +57,10 @@ export class GameService extends Game {
 
                 // Check for end of game
                 if(this.numTilesPaired > 19){
+                    const winner = this.winningPlayer();
+                    
+                    this.endGameStatus = winner ? `Player ${winner.id} Wins!` : "It's a tie";
+
                     gameUpdates.push(this.end());
                     return gameUpdates;
                 }
@@ -104,6 +108,7 @@ export class GameService extends Game {
         const lower = zone * 7;
         const upper = lower + 7;
 
+        this.bearSpotted = false;
         for(let i = lower; i < upper; i++){ // check all the tiles in the row for a bear
             if(this.deck.tiles[i].type == 'Bear'){
                 // Found the bear
@@ -115,7 +120,9 @@ export class GameService extends Game {
         this.flashlightIsOn = false;
         this.turn += 1;
 
-        return new GameUpdate('tileClick', 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted'));
+        const message = 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted');
+
+        return new GameUpdate('flashlightUsed', message);
     }
 
     /**
@@ -140,7 +147,12 @@ export class GameService extends Game {
     reshuffle():GameUpdate[] {
         this.deck.shuffle();
         this.turn += 1;
-        return [new GameUpdate('reshuffle', 'deck reshuffled')];
+
+        const data = {
+            deck: this.deck.getTiles()
+        }
+
+        return [new GameUpdate('reshuffled', 'deck reshuffled', data)];
     }
 
     /**
@@ -169,25 +181,6 @@ export class GameService extends Game {
     }
 
     /**
-     * Sets the endgame status based on
-     * the winning player
-     * 
-     * Ends the game.
-     */
-    determineEndStatus():void {
-        const [{points: score1}, {points: score2}] = Object.values(this.players);
-
-        if(score1 > score2) {
-            this.endGameStatus =`Player 1 Wins!`;
-
-        } else if (score2 > score1) {
-            this.endGameStatus = `Player 2 Wins!`;
-        }
-
-        this.endGameStatus = "It's a tie";
-    }
-
-    /**
      * Universal function to end the game
      * 
      * @returns a GameUpdate with the status of the ended game
@@ -205,6 +198,8 @@ export class GameService extends Game {
     resetGame():GameUpdate[] {
         // Flip all the tiles over
         this.deck.reset();
+        this.flippedTiles = [];
+        this.numTilesPaired = 0;
 
         // Take away bear sprays and reset points
         Object.values(this.players).forEach((player) => {
