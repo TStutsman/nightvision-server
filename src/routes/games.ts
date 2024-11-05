@@ -1,5 +1,6 @@
 import { Router } from 'websocket-express';
 import { store } from "../repository/GameStore";
+import { sessions } from '../repository/SessionStore';
 import { GameService } from "../service/GameService";
 import { GameUpdate, PlayerError } from 'src/model/GameUpdate';
 
@@ -7,8 +8,12 @@ const games = new Router();
 
 // Creates a new game and sends the id to the user
 // TODO: send game immediately instead
-games.get('/new', (_, res) => {
+games.get('/new', (req, res) => {
     const gameId = store.createGame();
+
+    const { session: token } = req.cookies;
+    sessions.attachService(token, gameId);
+    console.log(sessions.all());
 
     res.json({
         gameId
@@ -45,21 +50,20 @@ games.get('/:gameId', (req, res) => {
  * 
  * Websocket route for a single game instance
  */
-games.ws('/:gameId', async (req, res, next) => {
+games.ws('/:gameId', async (req, res) => {
     const ws = await res.accept();
-
     const gameService:GameService = store.getGameServiceById(+req.params.gameId);
 
     if(!gameService) {
         res.json({
             error: 'This game does not exist',
         });
-        next();
     }
 
     ws.on('message', (buffer: Buffer) => {
         const json = String(buffer)
-        const { event: actionType, data } = JSON.parse(json);
+        const { event: actionType, data, token } = JSON.parse(json);
+        const playerId = gameService.sessions[token]?.id;
 
         function handleAction(actionType:string, data:any):GameUpdate[] | PlayerError {
             switch (actionType) {
@@ -86,6 +90,16 @@ games.ws('/:gameId', async (req, res, next) => {
             }
         }
 
+        // TODO: handle errors before broadcasting
+        if(gameService.activePlayer().id !== playerId) {
+            ws.send(JSON.stringify({
+                actionType: 'playerError',
+                message: 'Not your turn',
+            }));
+
+            return;
+        }
+
         const gameUpdates = handleAction(actionType, data);
 
         if (gameUpdates instanceof PlayerError){
@@ -95,11 +109,13 @@ games.ws('/:gameId', async (req, res, next) => {
             }));
         } else {
             for(let gameUpdate of gameUpdates) {
-                ws.send(JSON.stringify({
-                    actionType: gameUpdate.actionType,
-                    message: gameUpdate.message,
-                    data: gameUpdate.data
-                }));
+                for(let session of Object.values(gameService.sessions)){
+                    session.ws.send(JSON.stringify({
+                        actionType: gameUpdate.actionType,
+                        message: gameUpdate.message,
+                        data: gameUpdate.data
+                    }));
+                }
             }
         }
     })

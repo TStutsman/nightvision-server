@@ -13,6 +13,8 @@ interface EventData {
     gameOver?: boolean;
     endGameStatus?: string;
     deck?: any;
+
+    rowFirstIndex?: number;
 }
 
 export class GameUpdate {

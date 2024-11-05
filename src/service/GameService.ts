@@ -1,9 +1,17 @@
 import { Game } from "src/model/Game";
 import { GameUpdate, PlayerError } from "src/model/GameUpdate";
 
+interface Session {
+    ws: WebSocket;
+    id: number;
+}
+
 export class GameService extends Game {
+    sessions: { [uuid: string]: Session};
+
     constructor() {
         super();
+        this.sessions = {};
     }
 
     /**
@@ -18,6 +26,7 @@ export class GameService extends Game {
      * and the data for the flipped Tile(s)
      */
     tileClick(tileIdx:number):GameUpdate[] {
+
         if(this.flashlightIsOn) {
             return [this.useFlashlight(tileIdx)];
         }
@@ -121,8 +130,11 @@ export class GameService extends Game {
         this.turn += 1;
 
         const message = 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted');
+        const data = {
+            rowFirstIndex: lower,
+        }
 
-        return new GameUpdate('flashlightUsed', message);
+        return new GameUpdate('flashlightUsed', message, data);
     }
 
     /**
