@@ -15,6 +15,7 @@
     "@types/ws": "^8.5.12",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "typescript": "^5.6.2",
     "uuid": "^11.0.2",

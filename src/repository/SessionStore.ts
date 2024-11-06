@@ -1,5 +1,5 @@
 class SessionStore {
-    _gameHash: {[uuid:string]: number};
+    _gameHash: {[uuid:string]: string};
 
     constructor(){
         this._gameHash = {}
@@ -21,7 +21,7 @@ class SessionStore {
      * @param token - the session token to add to the store
      */
     create(token: string):void {
-        this._gameHash[token] = -1;
+        this._gameHash[token] = '';
     }
 
     /**
@@ -30,7 +30,7 @@ class SessionStore {
      * @param token - the session token for a user
      * @param gameId - the id of the GameService in the game store
      */
-    attachService(token:string, gameId:number):void {
+    attachService(token:string, gameId:string):void {
         this._gameHash[token] = gameId;
     }
 
@@ -41,7 +41,7 @@ class SessionStore {
      * @param token - the session token for a user
      */
     removeService(token:string):void {
-        this._gameHash[token] = -1;
+        this._gameHash[token] = '';
     }
 
     /**
@@ -61,7 +61,7 @@ class SessionStore {
      * @returns the id of the GameService for the game the
      * user is currently playing
      */
-    getServiceId(token: string):number {
+    getServiceId(token: string):string {
         return this._gameHash[token];
     }
 
@@ -76,4 +76,6 @@ class SessionStore {
     }
 }
 
-export const sessions = new SessionStore();
+const sessions = new SessionStore();
+
+export { sessions as sessionStore };

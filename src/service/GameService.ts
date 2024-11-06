@@ -1,17 +1,17 @@
 import { Game } from "src/model/Game";
 import { GameUpdate, PlayerError } from "src/model/GameUpdate";
 
-interface Session {
+interface Client {
     ws: WebSocket;
     id: number;
 }
 
 export class GameService extends Game {
-    sessions: { [uuid: string]: Session};
+    clients: { [uuid: string]: Client};
 
     constructor() {
         super();
-        this.sessions = {};
+        this.clients = {};
     }
 
     /**
@@ -240,4 +240,24 @@ export class GameService extends Game {
 
         return [new GameUpdate('gameReset', 'New game started', data)];
     }
+
+    /**
+     * Subscribes a client to recieve game updates
+     * from the game service
+     * 
+     * @param send class method bound to the client socket
+     */
+    addClient(uuid:string, ws: any) {
+        // if the client is already defined (reconnecting)
+        // don't update the playerId
+        if(this.clients[uuid] !== undefined){
+            this.clients[uuid].ws = ws;
+            return;
+        }
+
+        this.clients[uuid] = {
+            ws,
+            id: Object.keys(this.clients).length + 1
+        };
+    };
 }

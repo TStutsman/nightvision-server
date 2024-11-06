@@ -1,6 +1,6 @@
 import { Router } from 'websocket-express';
-import { store } from "../repository/GameStore";
-import { sessions } from '../repository/SessionStore';
+import { gameStore } from "../repository/GameStore";
+import { sessionStore } from '../repository/SessionStore';
 import { GameService } from "../service/GameService";
 import { GameUpdate, PlayerError } from 'src/model/GameUpdate';
 
@@ -9,29 +9,35 @@ const games = new Router();
 // Creates a new game and sends the id to the user
 // TODO: send game immediately instead
 games.get('/new', (req, res) => {
-    const gameId = store.createGame();
+    const gameId = gameStore.createGame();
 
     const { session: token } = req.cookies;
-    sessions.attachService(token, gameId);
-    console.log(sessions.all());
+    sessionStore.attachService(token, gameId);
 
     res.json({
         gameId
     });
 });
 
-// Return the state of a specific game
+/**
+ * Attaches the session to a gameService and
+ * returns the entire (initial) state of the game
+ * 
+ * Usually used to initialize the game on the client side
+ */
 games.get('/:gameId', (req, res) => {
-    const game:GameService = store.getGameServiceById(+req.params.gameId);
+    const game:GameService = gameStore.getGameServiceById(req.params.gameId);
     console.log('GET /:gameId:', req.params.gameId);
 
     if(!game) {
-        res.statusCode = 404;
-        res.json({
+        res.status(404).json({
             message: `Unable to find game with id ${req.params.gameId}`
         });
         return;
     }
+
+    const { session: token } = req.cookies;
+    sessionStore.attachService(token, req.params.gameId);
 
     const { players, bearSpotted, gameOver, endGameStatus, deck } = game;
 
@@ -51,19 +57,22 @@ games.get('/:gameId', (req, res) => {
  * Websocket route for a single game instance
  */
 games.ws('/:gameId', async (req, res) => {
-    const ws = await res.accept();
-    const gameService:GameService = store.getGameServiceById(+req.params.gameId);
+    const gameService:GameService = gameStore.getGameServiceById(req.params.gameId);
 
     if(!gameService) {
-        res.json({
-            error: 'This game does not exist',
-        });
+        res.reject(404, 'This game does not exist');
     }
+
+    const ws = await res.accept();
+
+    const { session: token } = req.cookies;
+    gameService.addClient(token, ws);
 
     ws.on('message', (buffer: Buffer) => {
         const json = String(buffer)
-        const { event: actionType, data, token } = JSON.parse(json);
-        const playerId = gameService.sessions[token]?.id;
+        const { event: actionType, data } = JSON.parse(json);
+
+        const playerId = gameService.clients[token].id;
 
         function handleAction(actionType:string, data:any):GameUpdate[] | PlayerError {
             switch (actionType) {
@@ -109,8 +118,8 @@ games.ws('/:gameId', async (req, res) => {
             }));
         } else {
             for(let gameUpdate of gameUpdates) {
-                for(let session of Object.values(gameService.sessions)){
-                    session.ws.send(JSON.stringify({
+                for(let client of Object.values(gameService.clients)){
+                    client.ws.send(JSON.stringify({
                         actionType: gameUpdate.actionType,
                         message: gameUpdate.message,
                         data: gameUpdate.data

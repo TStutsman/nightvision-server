@@ -1,5 +1,5 @@
 import { Router } from "websocket-express";
-import { sessions } from "src/repository/SessionStore";
+import { sessionStore } from "src/repository/SessionStore";
 import { v4 as uuidv4} from 'uuid';
 
 const session = new Router();
@@ -12,11 +12,11 @@ session.get('/connect', (req, res) => {
         res.cookie('session', newToken);
     }
 
-    if(!sessions.includes(token)) {
-        sessions.create(token);
+    if(!sessionStore.includes(token)) {
+        sessionStore.create(token);
     }
 
-    const gameId = sessions.getServiceId(token);
+    const gameId = sessionStore.getServiceId(token);
 
     res.status(200)
     .json({

@@ -1,32 +1,62 @@
 import { GameService } from "../service/GameService";
 
 class GameStore{
-    activeGames: { [id:number]: GameService };
-    idCounter: number;
+    _activeGames: { [gameId: string]: GameService };
 
     constructor() {
-        this.activeGames = {};
-        this.idCounter = 0;
+        this._activeGames = {};
     }
 
-    /** Creates a new game in the store and returns the id */
-    createGame():number {
+    uniqueGameId() {
+        function generateRandomId() {
+            return [1,1,1,1,1,1].map(_ => {
+                const randLetterIndex = Math.floor(Math.random() * 26);
+                return String.fromCharCode(65 + randLetterIndex);
+            }).join('');
+        }
+
+        let randomString;
+        do {
+            randomString = generateRandomId();
+        } while (this._activeGames[randomString] !== undefined);
+
+        return randomString;
+    }
+
+    /** 
+     * Creates a new game in the store and returns the id 
+    */
+    createGame():string {
         const newGameService = new GameService();
-        this.activeGames[this.idCounter] = newGameService;
-        this.idCounter += 1;
+        
+        const uniqueId = this.uniqueGameId();
+        this._activeGames[uniqueId] = newGameService;
 
-        return this.idCounter - 1;
+        return uniqueId;
     }
 
-    getGameServiceById(gameId: number) {
-        return this.activeGames[gameId];
+    /**
+     * Finds the game service with the id and returns
+     * 
+     * @param gameId - id of the game service
+     * @returns the game with the associated id, or undefined
+     */
+    getGameServiceById(gameId: string):GameService {
+        return this._activeGames[gameId];
     }
 
-    deleteGameById(gameId: number) {
-        if(!this.activeGames[gameId]) return;
+    /**
+     * Deletes the game from the game store
+     * 
+     * @param gameId - id of the game to remove from the store
+     */
+    deleteGameById(gameId: string):void {
+        if(!this._activeGames[gameId]) return;
 
-        delete this.activeGames[gameId];
+        delete this._activeGames[gameId];
     }
 }
 
-export const store = new GameStore();
+const store = new GameStore();
+
+export { store as gameStore };
