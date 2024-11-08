@@ -1,8 +1,9 @@
+import { GameSocket } from 'src/model/GameSocket';
 import { Router } from 'websocket-express';
 import { gameStore } from "../repository/GameStore";
 import { sessionStore } from '../repository/SessionStore';
 import { GameService } from "../service/GameService";
-import { GameUpdate, PlayerError } from 'src/model/GameUpdate';
+import { messageRouter } from './messages';
 
 const games = new Router();
 
@@ -54,80 +55,27 @@ games.get('/:gameId', (req, res) => {
 /**
  * @route /:gameId (websocket)
  * 
- * Websocket route for a single game instance
+ * Performs the websocket handshake if the gameId exists,
+ * and attaches an event router to handle the custom message events.
+ * 
+ * If the game doesn't exist or the client does not have a session cookie,
+ * responds to client with an error message
  */
 games.ws('/:gameId', async (req, res) => {
+    const token = req.cookies.session;
     const gameService:GameService = gameStore.getGameServiceById(req.params.gameId);
 
-    if(!gameService) {
-        res.reject(404, 'This game does not exist');
-    }
+    if(!gameService) res.reject(404, 'This game does not exist');
+    if(!token) res.reject(403, 'Session token invalid');
 
     const ws = await res.accept();
 
-    const { session: token } = req.cookies;
-    gameService.addClient(token, ws);
+    // register client to recieve reaction broadcasts
+    // TODO: handle this inside GameSocket constructor??
+    const playerId = gameService.registerClient(token, ws);
 
-    ws.on('message', (buffer: Buffer) => {
-        const json = String(buffer)
-        const { event: actionType, data } = JSON.parse(json);
-
-        const playerId = gameService.clients[token].id;
-
-        function handleAction(actionType:string, data:any):GameUpdate[] | PlayerError {
-            switch (actionType) {
-                case 'tileClick': {
-                    if(!data) return new PlayerError('Must provide tile id for tileClick action');
-
-                    return gameService.tileClick(data.tileId);
-                }
-                case 'bearSpray': {
-                    return gameService.buySpray();
-                }
-                case 'reshuffle': {
-                    return gameService.reshuffle();
-                }
-                case 'flashlight': {
-                    return gameService.turnOnFlashlight();
-                }
-                case 'playAgain': {
-                    return gameService.resetGame();
-                }
-                default: {
-                    return new PlayerError(`Action ${actionType} not recognized`);
-                }
-            }
-        }
-
-        // TODO: handle errors before broadcasting
-        if(gameService.activePlayer().id !== playerId) {
-            ws.send(JSON.stringify({
-                actionType: 'playerError',
-                message: 'Not your turn',
-            }));
-
-            return;
-        }
-
-        const gameUpdates = handleAction(actionType, data);
-
-        if (gameUpdates instanceof PlayerError){
-            ws.send(JSON.stringify({
-                actionType: gameUpdates.actionType,
-                error: gameUpdates.message
-            }));
-        } else {
-            for(let gameUpdate of gameUpdates) {
-                for(let client of Object.values(gameService.clients)){
-                    client.ws.send(JSON.stringify({
-                        actionType: gameUpdate.actionType,
-                        message: gameUpdate.message,
-                        data: gameUpdate.data
-                    }));
-                }
-            }
-        }
-    })
+    const socket = new GameSocket(ws, gameService, playerId);
+    socket.use('message', messageRouter);
 });
 
 export { games as gamesRouter };

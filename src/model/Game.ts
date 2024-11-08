@@ -56,6 +56,15 @@ export class Game {
   }
 
   /**
+   * 
+   * @param id - playerId to compare to activePlayer
+   * @returns true if the id is the same as the game's activePlayer id
+   */
+  activePlayerIs(id:number) {
+    return this.activePlayer().id === id;
+  }
+
+  /**
    * Returns the player with the most points
    * 
    * In the case of a tie returns undefined

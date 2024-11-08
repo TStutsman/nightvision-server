@@ -1,5 +1,5 @@
 import { Game } from "src/model/Game";
-import { GameUpdate, PlayerError } from "src/model/GameUpdate";
+import { Reaction as GameUpdate, PlayerError } from "src/model/Reaction";
 
 interface Client {
     ws: WebSocket;
@@ -25,7 +25,10 @@ export class GameService extends Game {
      * an error flag if an error occured,
      * and the data for the flipped Tile(s)
      */
-    tileClick(tileIdx:number):GameUpdate[] {
+    tileClick(playerId:number, tileIdx:number):GameUpdate[] {
+        if(!this.activePlayerIs(playerId)){
+            return [new PlayerError('Not your turn')];
+        }
 
         if(this.flashlightIsOn) {
             return [this.useFlashlight(tileIdx)];
@@ -100,7 +103,11 @@ export class GameService extends Game {
      * 
      * @returns a GameUpdate indicating the flashlight was turned on
      */
-    turnOnFlashlight():GameUpdate[] {
+    turnOnFlashlight(playerId: number):GameUpdate[] {
+        if(!this.activePlayerIs(playerId)) {
+            [new PlayerError('Not your turn')];
+        }
+
         this.flashlightIsOn = true;
         return [new GameUpdate('flashlight', 'flashlight turned on')];
     }
@@ -140,7 +147,11 @@ export class GameService extends Game {
     /**
      * Uses the player's turn to purchase bear spray
      */
-    buySpray():GameUpdate[] {
+    buySpray(playerId:number):GameUpdate[] {
+        if(!this.activePlayerIs(playerId)){
+            return [new PlayerError('Not your turn')];
+        }
+
         const purchaser = this.activePlayer();
         purchaser.buySpray();
 
@@ -156,7 +167,11 @@ export class GameService extends Game {
     /**
      * Uses the player's turn to shuffle the deck
      */
-    reshuffle():GameUpdate[] {
+    reshuffle(playerId:number):GameUpdate[] {
+        if(!this.activePlayerIs(playerId)) {
+            return [new PlayerError('Not your turn')];
+        }
+
         this.deck.shuffle();
         this.turn += 1;
 
@@ -242,22 +257,30 @@ export class GameService extends Game {
     }
 
     /**
-     * Subscribes a client to recieve game updates
-     * from the game service
+     * Registers a client's uuid to an in-game playerId, and
+     * subscribes the client websocket to recieve updates from the game service
      * 
-     * @param send class method bound to the client socket
+     * If the client is already registered to this game, replaces the
+     * websocket on the existing client, and returns the clients in-game playerId
+     * 
+     * @param uuid - the client's unique session token cookie
+     * @param ws - the websocket to send updates to this client
+     * 
+     * @returns the in-game playerId associated with this client session token
      */
-    addClient(uuid:string, ws: any) {
+    registerClient(uuid:string, ws: any):number {
         // if the client is already defined (reconnecting)
         // don't update the playerId
         if(this.clients[uuid] !== undefined){
             this.clients[uuid].ws = ws;
-            return;
+            return this.clients[uuid].id;
         }
 
         this.clients[uuid] = {
             ws,
             id: Object.keys(this.clients).length + 1
         };
+
+        return this.clients[uuid].id;
     };
 }
