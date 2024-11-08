@@ -70,11 +70,7 @@ games.ws('/:gameId', async (req, res) => {
 
     const ws = await res.accept();
 
-    // register client to recieve reaction broadcasts
-    // TODO: handle this inside GameSocket constructor??
-    const playerId = gameService.registerClient(token, ws);
-
-    const socket = new GameSocket(ws, gameService, playerId);
+    const socket = new GameSocket(ws, gameService, token);
     socket.use('message', messageRouter);
 });
 

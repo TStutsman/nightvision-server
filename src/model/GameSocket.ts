@@ -8,10 +8,11 @@ export class GameSocket {
     game:GameService;
     playerId:number;
 
-    constructor(ws:WebSocket, gameService:GameService, playerId:number){
+    constructor(ws:WebSocket, gameService:GameService, token:string){
         this.ws = ws;
         this.game = gameService;
-        this.playerId = playerId;
+        // register client to recieve reaction broadcasts
+        this.playerId = gameService.registerClient(token, ws);
     }
     
     /**
