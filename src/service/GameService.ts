@@ -1,259 +1,13 @@
-import { Game } from "src/model/Game";
-import { Reaction as GameUpdate, PlayerError } from "src/model/Reaction";
+import { NightVisionGame, Reaction } from "src/model";
+import { PlayerService as Client } from "./PlayerService";
+import { messageRouter } from "src/routes/messages";
 
-interface Client {
-    ws: WebSocket;
-    id: number;
-}
-
-export class GameService extends Game {
-    clients: { [uuid: string]: Client};
+export class GameService extends NightVisionGame {
+    clients: { [uuid: string]: Client };
 
     constructor() {
         super();
         this.clients = {};
-    }
-
-    /**
-     * Tile click event broker.
-     * Runs checks for most game logic and updates game
-     * state based on tile flip events
-     * 
-     * @param tileIdx - the index of the tile being flipped
-     * @returns an array of GameUpdates with:
-     * a status message if an action is used or the game end,
-     * an error flag if an error occured,
-     * and the data for the flipped Tile(s)
-     */
-    tileClick(playerId:number, tileIdx:number):GameUpdate[] {
-        if(!this.activePlayerIs(playerId)){
-            return [new PlayerError('Not your turn')];
-        }
-
-        if(this.flashlightIsOn) {
-            return [this.useFlashlight(tileIdx)];
-        }
-
-        if(this.deck.tiles[tileIdx].isRevealed()) {
-            return [new PlayerError("can't flip a tile that's already been flipped")];
-        }
-        
-        if(this.flippedTiles.length > 1) {
-            return [new PlayerError("can't flip more than two tiles")];
-        }
-
-        const tile = this.deck.revealTile(tileIdx);
-        this.flippedTiles.push(tile);
-
-        const gameUpdates = [new GameUpdate('tileClick', 'tile flipped', tile.revealed())];
-
-        if(tile.type == 'Bear') {
-            gameUpdates.push(this.handleBearTile());
-        }
-
-        // Check tiles for match if two are flipped
-        if(this.flippedTiles.length > 1){
-            const [tile1, tile2] = this.flippedTiles;
-
-            if(tile1.type === tile2.type) {
-                const activePlayer = this.activePlayer();
-                activePlayer.points++;
-                this.numTilesPaired += 2;
-
-                const data = {
-                    playerId: activePlayer.id,
-                    score: activePlayer.points
-                };
-
-                gameUpdates.push(new GameUpdate('match', 'tiles matched', data));
-
-                // Check for end of game
-                if(this.numTilesPaired > 19){
-                    const winner = this.winningPlayer();
-                    
-                    this.endGameStatus = winner ? `Player ${winner.id} Wins!` : "It's a tie";
-
-                    gameUpdates.push(this.end());
-                    return gameUpdates;
-                }
-            } else {
-                tile1.hide();
-                tile2.hide();
-                this.turn += 1;
-                
-                const data = {
-                    tileId1: tile1.getId(),
-                    tileId2: tile2.getId(),
-                    nextPlayerId: this.activePlayer().id
-                }
-
-                gameUpdates.push(new GameUpdate('noMatch', "tiles did not match", data));
-            }
-
-            this.flippedTiles = [];
-        }
-
-        return gameUpdates;
-    }
-
-
-    /**
-     * Sets the flashlight to 'ON' meaning the next tile click will
-     * use flashlight rather than flip the tile
-     * 
-     * @returns a GameUpdate indicating the flashlight was turned on
-     */
-    turnOnFlashlight(playerId: number):GameUpdate[] {
-        if(!this.activePlayerIs(playerId)) {
-            [new PlayerError('Not your turn')];
-        }
-
-        this.flashlightIsOn = true;
-        return [new GameUpdate('flashlight', 'flashlight turned on')];
-    }
-
-    /**
-     * Uses the flashlight to check the row of the clicked tile
-     * determines if the bear tile is in the row and sets the bear spotted flag
-     * 
-     * @param id - the index of the clicked tile
-     * @returns a GameUpdate indicating whether the bear was spotted
-     */
-    useFlashlight(id: number):GameUpdate {
-        const zone = Math.floor(id/7);
-        const lower = zone * 7;
-        const upper = lower + 7;
-
-        this.bearSpotted = false;
-        for(let i = lower; i < upper; i++){ // check all the tiles in the row for a bear
-            if(this.deck.tiles[i].type == 'Bear'){
-                // Found the bear
-                this.bearSpotted = true;
-            }
-        }
-        
-        // Turn off the flashlight, and end the turn
-        this.flashlightIsOn = false;
-        this.turn += 1;
-
-        const message = 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted');
-        const data = {
-            rowFirstIndex: lower,
-        }
-
-        return new GameUpdate('flashlightUsed', message, data);
-    }
-
-    /**
-     * Uses the player's turn to purchase bear spray
-     */
-    buySpray(playerId:number):GameUpdate[] {
-        if(!this.activePlayerIs(playerId)){
-            return [new PlayerError('Not your turn')];
-        }
-
-        const purchaser = this.activePlayer();
-        purchaser.buySpray();
-
-        this.turn += 1;
-        const data = {
-            playerId: purchaser.id,
-            nextPlayerId: this.activePlayer().id,
-        }
-
-        return [new GameUpdate('bearSpray', 'bear spray purchased', data)];
-    }
-
-    /**
-     * Uses the player's turn to shuffle the deck
-     */
-    reshuffle(playerId:number):GameUpdate[] {
-        if(!this.activePlayerIs(playerId)) {
-            return [new PlayerError('Not your turn')];
-        }
-
-        this.deck.shuffle();
-        this.turn += 1;
-
-        const data = {
-            deck: this.deck.getTiles()
-        }
-
-        return [new GameUpdate('reshuffled', 'deck reshuffled', data)];
-    }
-
-    /**
-     * Update's active player's spray
-     * 
-     * In the event the active player does
-     * not have spray, handleBearTile will end
-     * the game
-     * 
-     * @returns a GameUpdate indicating whether the game has ended
-     */
-    handleBearTile():GameUpdate {
-        const activePlayer = this.activePlayer();
-        if(activePlayer.hasSpray){
-            // use spray if they have it
-            activePlayer.hasSpray = false;
-            return new GameUpdate('bearSprayUsed', 'Player was saved by bear spray', { playerId: activePlayer.id });
-            
-        } else {
-            // end the game if bear and no spray
-            this.turn += 1;
-            let winner = this.activePlayer();
-            this.endGameStatus = `Player ${winner.id} Wins`;
-            return this.end();
-        }
-    }
-
-    /**
-     * Universal function to end the game
-     * 
-     * @returns a GameUpdate with the status of the ended game
-     */
-    end():GameUpdate {
-        this.gameOver = true;
-        return new GameUpdate('endGame', this.endGameStatus);
-    }
-
-    /**
-     * Sets the game state to a fresh deck
-     * Player abilities and points are reset
-     * The turn counter is set to start (0)
-     */
-    resetGame():GameUpdate[] {
-        // Flip all the tiles over
-        this.deck.reset();
-        this.flippedTiles = [];
-        this.numTilesPaired = 0;
-
-        // Take away bear sprays and reset points
-        Object.values(this.players).forEach((player) => {
-            player.hasSpray = false;
-            player.points = 0;
-        });
-
-        // Remove bear spotted status
-        this.bearSpotted = false;
-
-        // Make it player 1's turn
-        this.turn = 0;
-
-        // And reset this.gameOver and this.endGameStatus
-        this.endGameStatus = "";
-        this.gameOver = false;
-
-        const data = {
-            activePlayer: this.activePlayer().id,
-            players: this.players,
-            bearSpotted: this.bearSpotted,
-            gameOver: false,
-            endGameStatus: '',
-            deck: this.deck.getTiles(),
-        };
-
-        return [new GameUpdate('gameReset', 'New game started', data)];
     }
 
     /**
@@ -268,19 +22,31 @@ export class GameService extends Game {
      * 
      * @returns the in-game playerId associated with this client session token
      */
-    registerClient(uuid:string, ws: any):number {
+    registerClient(uuid:string, ws: any):void {
         // if the client is already defined (reconnecting)
-        // don't update the playerId
+        // only update the existing client's websocket connection
         if(this.clients[uuid] !== undefined){
             this.clients[uuid].ws = ws;
-            return this.clients[uuid].id;
+            return;
         }
 
-        this.clients[uuid] = {
-            ws,
-            id: Object.keys(this.clients).length + 1
-        };
+        const id = Object.keys(this.clients).length + 1
 
-        return this.clients[uuid].id;
+        const newClient = new Client(ws, this, id);
+        newClient.use('message', messageRouter);
+
+        this.clients[uuid] = newClient;
     };
+
+    /**
+     * Sends a Reaction as JSON to all clients registered to this game
+     * 
+     * @param reaction - a Reaction object to emit
+     */
+    broadcast(reaction: Reaction):void {
+        for(const token in this.clients){
+            const client = this.clients[token];
+            client.ws.send(reaction.json());
+        }
+    }
 }

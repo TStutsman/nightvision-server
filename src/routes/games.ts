@@ -1,9 +1,6 @@
-import { GameSocket } from 'src/model/GameSocket';
+import { gameStore, sessionStore } from 'src/repository';
+import { GameService } from "src/service";
 import { Router } from 'websocket-express';
-import { gameStore } from "../repository/GameStore";
-import { sessionStore } from '../repository/SessionStore';
-import { GameService } from "../service/GameService";
-import { messageRouter } from './messages';
 
 const games = new Router();
 
@@ -40,13 +37,12 @@ games.get('/:gameId', (req, res) => {
     const { session: token } = req.cookies;
     sessionStore.attachService(token, req.params.gameId);
 
-    const { players, bearSpotted, gameOver, endGameStatus, deck } = game;
+    const { players, bearSpotted, endGameStatus, deck } = game;
 
     res.json({
         activePlayer: game.activePlayer().id,
         players,
         bearSpotted,
-        gameOver,
         endGameStatus,
         deck: deck.getTiles()
     });
@@ -69,9 +65,7 @@ games.ws('/:gameId', async (req, res) => {
     if(!token) res.reject(403, 'Session token invalid');
 
     const ws = await res.accept();
-
-    const socket = new GameSocket(ws, gameService, token);
-    socket.use('message', messageRouter);
+    gameService.registerClient(token, ws);
 });
 
 export { games as gamesRouter };

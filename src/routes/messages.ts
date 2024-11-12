@@ -3,49 +3,51 @@ import { EventRouter } from "src/service/EventRouter";
 
 const messages = new EventRouter();
 
-messages.on('tileClick', (event, socket) => {
+messages.on('tileClick', (event, playerService) => {
     if(!event.data || event.data.tileId === undefined) return new ClientError('Must provide tile id for tileClick action');
 
-    const reactions = socket.game.tileClick(socket.playerId, event.data.tileId);
+    const { game, id } = playerService;
+
+    const reactions = game.tileClick(id, event.data.tileId);
 
     for(const reaction of reactions) {
-        socket.emit(reaction);
+        game.broadcast(reaction);
     }
     return;
 });
 
-messages.on('bearSpray', (_, socket) => {
-    const reactions = socket.game.buySpray(socket.playerId);
+messages.on('bearSpray', (_, playerService) => {
+    const reactions = playerService.game.buySpray(playerService.id);
 
     for(const reaction of reactions) {
-        socket.emit(reaction);
+        playerService.game.broadcast(reaction);
     }
     return;
 });
 
-messages.on('reshuffle', (_, socket) => {
-    const reactions = socket.game.reshuffle(socket.playerId);
+messages.on('reshuffle', (_, playerService) => {
+    const reactions = playerService.game.reshuffle(playerService.id);
 
     for(const reaction of reactions) {
-        socket.emit(reaction);
+        playerService.game.broadcast(reaction);
     }
     return;
 });
 
-messages.on('flashlight', (_, socket) => {
-    const reactions = socket.game.turnOnFlashlight(socket.playerId);
+messages.on('flashlight', (_, playerService) => {
+    const reactions = playerService.game.turnOnFlashlight(playerService.id);
 
     for(const reaction of reactions) {
-        socket.emit(reaction);
+        playerService.game.broadcast(reaction);
     }
     return;
 });
 
-messages.on('playAgain', (_, socket) => {
-    const reactions = socket.game.resetGame();
+messages.on('playAgain', (_, playerService) => {
+    const reactions = playerService.game.resetGame();
 
     for(const reaction of reactions) {
-        socket.emit(reaction);
+        playerService.game.broadcast(reaction);
     }
     return;
 });

@@ -1,9 +1,9 @@
-import { GameSocket } from "src/model/GameSocket";
+import { PlayerService } from "src/service";
 import { ClientError } from "src/model/Reaction";
 import type { GameEvent } from "src/types";
 
 interface Listener {
-    (event:GameEvent, ws:GameSocket):void
+    (event:GameEvent, playerService:PlayerService):void
 }
 
 class EventRouter {
@@ -13,10 +13,10 @@ class EventRouter {
         this.routes = {};
 
         // Initialize default '*' route that can be overwritten by EventRouter.prototype.on()
-        this.routes['*'] = (event:GameEvent, ws:GameSocket) => {
+        this.routes['*'] = (event:GameEvent, playerService:PlayerService) => {
             const error = new ClientError(`Event ${event} not found`);
 
-            ws.json(error);
+            playerService.json(error);
         };
     }
 
@@ -32,23 +32,21 @@ class EventRouter {
     }
 
     /**
-     * Parses buffer stream into an event object and routes the event
-     * according to the eventName. If the eventName is not registered
-     * to a listener function, the default listener ('*') is called instead
+     * Routes the event according to the eventName.
      * 
-     * @param socket - the event's origin GameSocket instance
-     * @param buffer - the datastream of the event data to be parsed
+     * If the eventName is not registered to a listener function, 
+     * the default listener ('*') is called instead
+     * 
+     * @param playerService - the event's origin PlayerService instance
+     * @param data - the data object to pass to the listener fn
      */
-    route(socket:GameSocket, buffer: Buffer):void {
-        const json = String(buffer);
-        const data = JSON.parse(json);
-
+    route(playerService:PlayerService, data: any):void {
         if(this.routes[data.event] === undefined) {
-            return this.routes['*'](data, socket);
+            return this.routes['*'](data, playerService);
         }
 
         const listener = this.routes[data.event];
-        listener(data, socket);
+        listener(data, playerService);
     }
 }
 
