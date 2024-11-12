@@ -1,7 +1,7 @@
 import { ClientError } from "src/model/Reaction";
-import { EventRouter } from "src/service/EventRouter";
+import { JSONEventRouter } from "src/service/EventRouter";
 
-const messages = new EventRouter();
+const messages = new JSONEventRouter();
 
 messages.on('tileClick', (event, playerService) => {
     if(!event.data || event.data.tileId === undefined) return new ClientError('Must provide tile id for tileClick action');

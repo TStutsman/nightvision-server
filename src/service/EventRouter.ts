@@ -6,7 +6,13 @@ interface Listener {
     (event:GameEvent, playerService:PlayerService):void
 }
 
-class EventRouter {
+interface EventRouter {
+    routes: {[event:string]: Listener};
+    on: (eventName:string, reaction:Listener) => void;
+    route: (playerService:PlayerService, data:any) => void;
+};
+
+class JSONEventRouter implements EventRouter{
     routes: {[event:string]: Listener};
 
     constructor() {
@@ -50,4 +56,4 @@ class EventRouter {
     }
 }
 
-export { EventRouter };
+export { EventRouter, JSONEventRouter };
