@@ -1,4 +1,4 @@
-import { EventData } from "./EventData";
+import { EventData } from "./EventData.js";
 
 export interface GameEvent {
     event:string;

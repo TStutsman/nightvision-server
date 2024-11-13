@@ -1,7 +1,7 @@
-import { Deck } from './Deck';
-import { Tile } from './Tile';
-import { Player } from './Player';
-import { Reaction as GameUpdate, PlayerError } from './Reaction';
+import { Deck } from './Deck.js';
+import { Tile } from './Tile.js';
+import { Player } from './Player.js';
+import { Reaction as GameUpdate, PlayerError } from './Reaction.js';
 
 export class NightVisionGame {
     turn: number;

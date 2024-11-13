@@ -1,4 +1,4 @@
-import { Tile } from './Tile';
+import { Tile } from './Tile.js';
 
 export class Deck {
     values: {[type: string]: number}

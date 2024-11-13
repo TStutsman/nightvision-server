@@ -1,6 +1,6 @@
-import { EventRouter } from "./EventRouter";
-import { GameService } from "./GameService";
-import { PlayerService } from "./PlayerService";
+import { EventRouter } from "./EventRouter.js";
+import { GameService } from "./GameService.js";
+import { PlayerService } from "./PlayerService.js";
 
 export {
     EventRouter,

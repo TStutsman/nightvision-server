@@ -1,29 +1,21 @@
-import { EventData } from "../types/index.js";
-
 export class Reaction {
-    actionType:string;
-    message:string;
-    data?:EventData;
-
-    constructor(actionType:string, message:string, data?:EventData) {
+    constructor(actionType, message, data) {
         this.actionType = actionType;
         this.message = message;
         this.data = data;
     }
-
     json() {
         return JSON.stringify(this);
     }
 }
-
 export class PlayerError extends Reaction {
-    constructor(message:string) {
+    constructor(message) {
         super('playerError', message);
     }
 }
-
 export class ClientError extends Reaction {
-    constructor(message:string) {
+    constructor(message) {
         super('clientError', message);
     }
 }
+//# sourceMappingURL=Reaction.js.map

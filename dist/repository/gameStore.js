@@ -1,62 +1,36 @@
 import { GameService } from "../service/GameService.js";
-
-class GameStore{
-    _activeGames: { [gameId: string]: GameService };
-
+class GameStore {
     constructor() {
         this._activeGames = {};
     }
-
     uniqueGameId() {
         function generateRandomId() {
-            return [1,1,1,1,1,1].map(_ => {
+            return [1, 1, 1, 1, 1, 1].map(_ => {
                 const randLetterIndex = Math.floor(Math.random() * 26);
                 return String.fromCharCode(65 + randLetterIndex);
             }).join('');
         }
-
         let randomString;
         do {
             randomString = generateRandomId();
         } while (this._activeGames[randomString] !== undefined);
-
         return randomString;
     }
-
-    /** 
-     * Creates a new game in the store and returns the id 
-    */
-    createGame():string {
+    createGame() {
         const newGameService = new GameService();
-        
         const uniqueId = this.uniqueGameId();
         this._activeGames[uniqueId] = newGameService;
-
         return uniqueId;
     }
-
-    /**
-     * Finds the game service with the id and returns
-     * 
-     * @param gameId - id of the game service
-     * @returns the game with the associated id, or undefined
-     */
-    getGameServiceById(gameId: string):GameService {
+    getGameServiceById(gameId) {
         return this._activeGames[gameId];
     }
-
-    /**
-     * Deletes the game from the game store
-     * 
-     * @param gameId - id of the game to remove from the store
-     */
-    deleteGameById(gameId: string):void {
-        if(!this._activeGames[gameId]) return;
-
+    deleteGameById(gameId) {
+        if (!this._activeGames[gameId])
+            return;
         delete this._activeGames[gameId];
     }
 }
-
 const store = new GameStore();
-
 export { store as gameStore };
+//# sourceMappingURL=gameStore.js.map

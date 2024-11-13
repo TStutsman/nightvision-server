@@ -1,6 +1,6 @@
-import { Reaction } from "../model";
-import { EventRouter } from "../service/EventRouter";
-import { GameService } from "../service/GameService";
+import { Reaction } from "../model/index.js";
+import { EventRouter } from "./EventRouter.js";
+import { GameService } from "./GameService.js";
 import { WebSocket } from "ws";
 
 export class PlayerService {

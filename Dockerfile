@@ -12,8 +12,10 @@ COPY package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY ./dist .
+
+COPY ./public ./public
 
 EXPOSE 8080
 
-CMD ["npm", "start"]
+CMD ["node", "app.js"]

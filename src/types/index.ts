@@ -1,5 +1,5 @@
-import { EventData } from "./EventData";
-import { GameEvent } from "./GameEvent";
+import { EventData } from "./EventData.js";
+import { GameEvent } from "./GameEvent.js";
 
 export { EventData };
 export { GameEvent };

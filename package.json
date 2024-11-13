@@ -6,13 +6,13 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsx ./src/app.ts",
-    "dev": "nodemon --inspect ./src/app.ts"
+    "start": "node ./dist/app.js",
+    "dev": "nodemon --inspect ./src/app.ts",
+    "build": "tsc"
   },
   "author": "TStutsman",
   "license": "ISC",
   "dependencies": {
-    "@types/ws": "^8.5.12",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -22,6 +22,7 @@
     "websocket-express": "^3.1.1"
   },
   "devDependencies": {
+    "@types/ws": "^8.5.12",
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^5.0.0",
     "@types/express-ws": "^3.0.5",
