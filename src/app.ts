@@ -12,6 +12,8 @@ const callback = () => console.log(`Express server is listening on port ${port}`
 app.use(WebSocketExpress.json());
 app.use(cookieParser());
 
+app.use('/', WebSocketExpress.static('./public'));
+
 app.use('/api/session', sessionRouter);
 app.use('/api/games', gamesRouter);
 
