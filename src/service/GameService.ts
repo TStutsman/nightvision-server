@@ -1,6 +1,6 @@
-import { NightVisionGame, Reaction } from "src/model";
+import { NightVisionGame, Reaction } from "../model";
 import { PlayerService as Client } from "./PlayerService";
-import { messageRouter } from "src/routes/messages";
+import { messageRouter } from "../routes/messages";
 
 export class GameService extends NightVisionGame {
     clients: { [uuid: string]: Client };

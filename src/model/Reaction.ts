@@ -1,4 +1,4 @@
-import { EventData } from "src/types";
+import { EventData } from "../types";
 
 export class Reaction {
     actionType:string;

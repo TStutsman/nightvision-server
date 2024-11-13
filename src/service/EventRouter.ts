@@ -1,6 +1,6 @@
-import { PlayerService } from "src/service";
-import { ClientError } from "src/model/Reaction";
-import type { GameEvent } from "src/types";
+import { PlayerService } from "../service";
+import { ClientError } from "../model/Reaction";
+import type { GameEvent } from "../types";
 
 interface Listener {
     (event:GameEvent, playerService:PlayerService):void

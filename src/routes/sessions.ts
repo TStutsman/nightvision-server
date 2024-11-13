@@ -1,5 +1,5 @@
 import { Router } from "websocket-express";
-import { sessionStore } from "src/repository/sessionStore";
+import { sessionStore } from "../repository/sessionStore";
 import { v4 as uuidv4} from 'uuid';
 
 const session = new Router();

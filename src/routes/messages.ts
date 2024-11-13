@@ -1,5 +1,5 @@
-import { ClientError } from "src/model/Reaction";
-import { JSONEventRouter } from "src/service/EventRouter";
+import { ClientError } from "../model/Reaction";
+import { JSONEventRouter } from "../service/EventRouter";
 
 const messages = new JSONEventRouter();
 

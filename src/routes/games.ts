@@ -1,5 +1,5 @@
-import { gameStore, sessionStore } from 'src/repository';
-import { GameService } from "src/service";
+import { gameStore, sessionStore } from '../repository';
+import { GameService } from "../service";
 import { Router } from 'websocket-express';
 
 const games = new Router();
