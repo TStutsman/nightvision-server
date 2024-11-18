@@ -16,7 +16,7 @@ class SessionStore {
 
     /**
      * Adds a session token to the session store, and initializes the value
-     * to -1 (meaning not currently in a game)
+     * to '' (meaning not currently in a game)
      * 
      * @param token - the session token to add to the store
      */
@@ -35,7 +35,7 @@ class SessionStore {
     }
 
     /**
-     * Resets the gameService id value to -1, meaning the user is
+     * Resets the gameService id value to '', meaning the user is
      * no longer in an active game
      * 
      * @param token - the session token for a user

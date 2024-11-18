@@ -4,10 +4,12 @@ import { messageRouter } from "../routes/messages.js";
 
 export class GameService extends NightVisionGame {
     clients: { [uuid: string]: Client };
+    numClients: number;
 
     constructor() {
         super();
         this.clients = {};
+        this.numClients = 0;
     }
 
     /**
@@ -28,17 +30,28 @@ export class GameService extends NightVisionGame {
         if(this.clients[uuid] !== undefined){
             const reconnectTarget = this.clients[uuid];
             reconnectTarget.ws = ws;
-            reconnectTarget.use('message', messageRouter);
+            reconnectTarget.use('message', messageRouter); // TODO: save reference to router in PlayerService?
             return;
         }
 
-        const id = Object.keys(this.clients).length + 1
+        const id = ++this.numClients;
 
         const newClient = new Client(ws, this, id);
         newClient.use('message', messageRouter);
 
         this.clients[uuid] = newClient;
     };
+
+    removeClient(uuid:string):void {
+        delete this.clients[uuid];
+
+        this.numClients--;
+
+        const reactions = this.resetGame();
+        for(const reaction of reactions){
+            this.broadcast(reaction);
+        }
+    }
 
     /**
      * Sends a Reaction as JSON to all clients registered to this game
