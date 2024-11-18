@@ -4,6 +4,8 @@ import { JSONEventRouter } from "../service/EventRouter.js";
 const messages = new JSONEventRouter();
 
 messages.on('tileClick', (event, playerService) => {
+    console.log(event);
+
     if(!event.data || event.data.tileId === undefined) return new ClientError('Must provide tile id for tileClick action');
 
     const { game, id } = playerService;

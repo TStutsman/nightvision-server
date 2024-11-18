@@ -26,7 +26,9 @@ export class GameService extends NightVisionGame {
         // if the client is already defined (reconnecting)
         // only update the existing client's websocket connection
         if(this.clients[uuid] !== undefined){
-            this.clients[uuid].ws = ws;
+            const reconnectTarget = this.clients[uuid];
+            reconnectTarget.ws = ws;
+            reconnectTarget.use('message', messageRouter);
             return;
         }
 
