@@ -8,7 +8,9 @@ export class GameService extends NightVisionGame {
     }
     registerClient(uuid, ws) {
         if (this.clients[uuid] !== undefined) {
-            this.clients[uuid].ws = ws;
+            const reconnectTarget = this.clients[uuid];
+            reconnectTarget.ws = ws;
+            reconnectTarget.use('message', messageRouter);
             return;
         }
         const id = Object.keys(this.clients).length + 1;

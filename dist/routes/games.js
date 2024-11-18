@@ -11,7 +11,7 @@ games.get('/new', (req, res) => {
 });
 games.get('/:gameId', (req, res) => {
     const game = gameStore.getGameServiceById(req.params.gameId);
-    console.log('GET /:gameId:', req.params.gameId);
+    console.log("GET /games/[gameId:\x1b[32m" + req.params.gameId + "\x1b[0m]");
     if (!game) {
         res.status(404).json({
             message: `Unable to find game with id ${req.params.gameId}`
