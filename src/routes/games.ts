@@ -67,11 +67,14 @@ games.get('/:gameId', (req, res) => {
     const { players, bearSpotted, endGameStatus, deck } = game;
 
     res.json({
+        gameId: req.params.gameId,
+        game: {
         activePlayer: game.activePlayer().id,
         players,
         bearSpotted,
         endGameStatus,
         deck: deck.getTiles()
+        }
     });
 });
 
