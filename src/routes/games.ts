@@ -4,8 +4,14 @@ import { Router } from 'websocket-express';
 
 const games = new Router();
 
-// Creates a new game and sends the id to the user
-// TODO: send game immediately instead
+/**
+ * @route GET /api/games/new
+ * 
+ * Creates a new game and attaches the client session to 
+ * the new gameService
+ * 
+ * Responds with the id of the game and entire state of the game
+ */
 games.get('/new', (req, res) => {
     const gameId = gameStore.createGame();
 
@@ -27,6 +33,18 @@ games.get('/new', (req, res) => {
     });
 });
 
+
+/**
+ * @route GET /api/games/leave
+ * 
+ * Unsubscribes the client websocket from the gameService, and
+ * unregisters the session with that same gameService
+ * 
+ * Also checks if the gameService has any remaining clients, and deletes
+ * the game if there are none
+ * 
+ * Responds with an empty gameId (200)
+ */
 games.get('/leave', (req, res) => {
     const token = req.cookies.session;
     const gameId = sessionStore.getServiceId(token);
@@ -45,10 +63,12 @@ games.get('/leave', (req, res) => {
 });
 
 /**
- * Attaches the session to a gameService and
- * returns the entire (initial) state of the game
+ * @route GET /api/games/:gameId
  * 
- * Usually used to initialize the game on the client side
+ * Attaches the session to a gameService and
+ * responds with the entire state of the game
+ * 
+ * Usually used to initialize the client's game state
  */
 games.get('/:gameId', (req, res) => {
     const game:GameService = gameStore.getGameServiceById(req.params.gameId);
@@ -79,7 +99,7 @@ games.get('/:gameId', (req, res) => {
 });
 
 /**
- * @route /:gameId (websocket)
+ * @route api/games/:gameId (websocket)
  * 
  * Performs the websocket handshake if the gameId exists,
  * and attaches an event router to handle the custom message events.
