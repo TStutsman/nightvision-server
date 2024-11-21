@@ -99,7 +99,7 @@ games.get('/:gameId', (req, res) => {
 });
 
 /**
- * @route api/games/:gameId (websocket)
+ * @route WS [handshake] api/games/:gameId
  * 
  * Performs the websocket handshake if the gameId exists,
  * and attaches an event router to handle the custom message events.
