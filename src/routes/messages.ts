@@ -1,4 +1,4 @@
-import { ClientError } from "../model/Reaction.js";
+import { ClientError } from "../model/index.js";
 import { JSONEventRouter } from "../service/EventRouter.js";
 
 const messages = new JSONEventRouter();

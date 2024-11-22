@@ -1,4 +1,4 @@
-import { ClientError } from "../model/Reaction.js";
+import { ClientError } from "../model/index.js";
 ;
 class JSONEventRouter {
     constructor() {

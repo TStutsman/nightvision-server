@@ -5,8 +5,30 @@ games.get('/new', (req, res) => {
     const gameId = gameStore.createGame();
     const { session: token } = req.cookies;
     sessionStore.attachService(token, gameId);
+    const game = gameStore.getGameServiceById(gameId);
+    const { players, bearSpotted, endGameStatus, deck } = game;
     res.json({
-        gameId
+        gameId,
+        game: {
+            activePlayer: game.activePlayer().id,
+            players,
+            bearSpotted,
+            endGameStatus,
+            deck: deck.getTiles()
+        }
+    });
+});
+games.get('/leave', (req, res) => {
+    const token = req.cookies.session;
+    const gameId = sessionStore.getServiceId(token);
+    const gameService = gameStore.getGameServiceById(gameId);
+    gameService.removeClient(token);
+    sessionStore.removeService(token);
+    if (gameService.numClients < 1) {
+        gameStore.deleteGameById(gameId);
+    }
+    res.json({
+        gameId: ''
     });
 });
 games.get('/:gameId', (req, res) => {
@@ -22,18 +44,24 @@ games.get('/:gameId', (req, res) => {
     sessionStore.attachService(token, req.params.gameId);
     const { players, bearSpotted, endGameStatus, deck } = game;
     res.json({
-        activePlayer: game.activePlayer().id,
-        players,
-        bearSpotted,
-        endGameStatus,
-        deck: deck.getTiles()
+        gameId: req.params.gameId,
+        game: {
+            activePlayer: game.activePlayer().id,
+            players,
+            bearSpotted,
+            endGameStatus,
+            deck: deck.getTiles()
+        }
     });
 });
 games.ws('/:gameId', async (req, res) => {
     const token = req.cookies.session;
     const gameService = gameStore.getGameServiceById(req.params.gameId);
-    if (!gameService)
+    if (!gameService) {
+        console.log('no game');
         res.reject(404, 'This game does not exist');
+        return;
+    }
     if (!token)
         res.reject(403, 'Session token invalid');
     const ws = await res.accept();

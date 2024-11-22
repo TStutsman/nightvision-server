@@ -1,5 +1,4 @@
-import { NightVisionGame, Reaction } from "../model/index.js";
-import { Client } from "./Client.js";
+import { NightVisionGame, Reaction, Client } from "../model/index.js";
 import { messageRouter } from "../routes/messages.js";
 
 export class GameService extends NightVisionGame {

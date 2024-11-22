@@ -1,5 +1,4 @@
-import { Client } from "../service/index.js";
-import { ClientError } from "../model/Reaction.js";
+import { Client, ClientError } from "../model/index.js";
 import type { GameEvent } from "../types/index.js";
 
 interface Listener {
