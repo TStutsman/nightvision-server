@@ -7,11 +7,13 @@ export class PlayerService {
     id:number;
     ws:WebSocket;
     game:GameService;
+    routers:{[eventName:string]: EventRouter};
 
     constructor(ws:WebSocket, gameService:GameService, id:number){
         this.ws = ws;
         this.game = gameService;
         this.id = id;
+        this.routers = {}
     }
     
     /**
@@ -30,6 +32,27 @@ export class PlayerService {
 
             router.route(this, data);
         });
+        this.routers[eventName] = router;
+        return this;
+    }
+
+    /**
+     * Connects a new websocket connection to an existing client,
+     * and re-registers all routers associated with the client
+     * 
+     * @param ws - new websocket object to recieve and emit events
+     * @returns this PlayerService for method chaining
+     */
+    reconnect(ws:WebSocket):PlayerService {
+        this.ws = ws;
+        for(const eventName in this.routers){
+            this.ws.on(eventName, (buffer: Buffer) => {
+                const json = String(buffer);
+                const data = JSON.parse(json);
+
+                this.routers[eventName].route(this, data);
+            })
+        }
         return this;
     }
 

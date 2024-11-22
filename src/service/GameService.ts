@@ -28,9 +28,8 @@ export class GameService extends NightVisionGame {
         // if the client is already defined (reconnecting)
         // only update the existing client's websocket connection
         if(this.clients[uuid] !== undefined){
-            const reconnectTarget = this.clients[uuid];
-            reconnectTarget.ws = ws;
-            reconnectTarget.use('message', messageRouter); // TODO: save reference to router in PlayerService?
+            const existingClient = this.clients[uuid];
+            existingClient.reconnect(ws);
             return;
         }
 
@@ -42,15 +41,19 @@ export class GameService extends NightVisionGame {
         this.clients[uuid] = newClient;
     };
 
+    /**
+     * Removes the client with the specified uuid, and resets
+     * the game the client was in
+     * 
+     * @param uuid - the client's unique session token cookie
+     */
     removeClient(uuid:string):void {
         delete this.clients[uuid];
 
         this.numClients--;
 
         const reactions = this.resetGame();
-        for(const reaction of reactions){
-            this.broadcast(reaction);
-        }
+        this.broadcast(reactions);
     }
 
     /**
