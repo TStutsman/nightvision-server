@@ -1,4 +1,4 @@
-export class PlayerService {
+export class Client {
     constructor(ws, gameService, id) {
         this.ws = ws;
         this.game = gameService;
@@ -21,4 +21,4 @@ export class PlayerService {
         return this;
     }
 }
-//# sourceMappingURL=PlayerService.js.map
+//# sourceMappingURL=Client.js.map

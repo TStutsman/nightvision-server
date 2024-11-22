@@ -1,5 +1,5 @@
 import { NightVisionGame } from "../model/index.js";
-import { PlayerService as Client } from "./PlayerService.js";
+import { Client as Client } from "./Client.js";
 import { messageRouter } from "../routes/messages.js";
 export class GameService extends NightVisionGame {
     constructor() {

@@ -1,5 +1,5 @@
 import { NightVisionGame, Reaction } from "../model/index.js";
-import { PlayerService as Client } from "./PlayerService.js";
+import { Client } from "./Client.js";
 import { messageRouter } from "../routes/messages.js";
 
 export class GameService extends NightVisionGame {
@@ -17,19 +17,16 @@ export class GameService extends NightVisionGame {
      * subscribes the client websocket to recieve updates from the game service
      * 
      * If the client is already registered to this game, replaces the
-     * websocket on the existing client, and returns the clients in-game playerId
+     * websocket on the existing client
      * 
      * @param uuid - the client's unique session token cookie
      * @param ws - the websocket to send updates to this client
-     * 
-     * @returns the in-game playerId associated with this client session token
      */
     registerClient(uuid:string, ws: any):void {
         // if the client is already defined (reconnecting)
         // only update the existing client's websocket connection
         if(this.clients[uuid] !== undefined){
-            const existingClient = this.clients[uuid];
-            existingClient.reconnect(ws);
+            this.clients[uuid].reconnect(ws);
             return;
         }
 

@@ -3,20 +3,20 @@ import { ClientError } from "../model/Reaction.js";
 class JSONEventRouter {
     constructor() {
         this.routes = {};
-        this.routes['*'] = (event, playerService) => {
+        this.routes['*'] = (event, client) => {
             const error = new ClientError(`Event ${event} not found`);
-            playerService.json(error);
+            client.json(error);
         };
     }
     on(eventName, reaction) {
         this.routes[eventName] = reaction;
     }
-    route(playerService, data) {
+    route(client, data) {
         if (this.routes[data.event] === undefined) {
-            return this.routes['*'](data, playerService);
+            return this.routes['*'](data, client);
         }
         const listener = this.routes[data.event];
-        listener(data, playerService);
+        listener(data, client);
     }
 }
 export { JSONEventRouter };

@@ -3,7 +3,7 @@ import { EventRouter } from "./EventRouter.js";
 import { GameService } from "./GameService.js";
 import { WebSocket } from "ws";
 
-export class PlayerService {
+export class Client {
     id:number;
     ws:WebSocket;
     game:GameService;
@@ -23,9 +23,9 @@ export class PlayerService {
      * 
      * @param eventName - the name of the websocket event ['connecting', 'message', etc.]
      * @param router - the router to handle this event
-     * @returns this PlayerService for method chaining
+     * @returns this Client for method chaining
      */
-    use(eventName: string, router:EventRouter):PlayerService {
+    use(eventName: string, router:EventRouter):Client {
         this.ws.on(eventName, (buffer: Buffer) => {
             const json = String(buffer);
             const data = JSON.parse(json);
@@ -41,9 +41,9 @@ export class PlayerService {
      * and re-registers all routers associated with the client
      * 
      * @param ws - new websocket object to recieve and emit events
-     * @returns this PlayerService for method chaining
+     * @returns this Client for method chaining
      */
-    reconnect(ws:WebSocket):PlayerService {
+    reconnect(ws:WebSocket):Client {
         this.ws = ws;
         for(const eventName in this.routers){
             this.ws.on(eventName, (buffer: Buffer) => {
@@ -61,21 +61,21 @@ export class PlayerService {
      * the client via the websocket
      * 
      * @param reaction - an object to be converted to json
-     * @returns this PlayerService for method chaining
+     * @returns this Client for method chaining
      */
-    json(reaction: Reaction):PlayerService {
+    json(reaction: Reaction):Client {
         this.send(reaction.json());
         return this;
     }
 
     /**
      * Sends a message string via the websocket, this is a convenience
-     * method to refer to PlayerServiceInstance.ws.send()
+     * method to refer to ClientInstance.ws.send()
      * 
      * @param message - string to be send via the websocket
-     * @returns this PlayerService for method chaining
+     * @returns this Client for method chaining
      */
-    send(message: string):PlayerService {
+    send(message: string):Client {
         this.ws.send(message);
         return this;
     }

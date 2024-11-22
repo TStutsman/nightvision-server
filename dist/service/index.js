@@ -1,4 +1,4 @@
 import { GameService } from "./GameService.js";
-import { PlayerService } from "./PlayerService.js";
-export { GameService, PlayerService };
+import { Client } from "./Client.js";
+export { GameService, Client };
 //# sourceMappingURL=index.js.map

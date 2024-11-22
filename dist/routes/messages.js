@@ -1,41 +1,41 @@
 import { ClientError } from "../model/Reaction.js";
 import { JSONEventRouter } from "../service/EventRouter.js";
 const messages = new JSONEventRouter();
-messages.on('tileClick', (event, playerService) => {
+messages.on('tileClick', (event, client) => {
     if (!event.data || event.data.tileId === undefined)
         return new ClientError('Must provide tile id for tileClick action');
-    const { game, id } = playerService;
+    const { game, id } = client;
     const reactions = game.tileClick(id, event.data.tileId);
     for (const reaction of reactions) {
         game.broadcast(reaction);
     }
     return;
 });
-messages.on('bearSpray', (_, playerService) => {
-    const reactions = playerService.game.buySpray(playerService.id);
+messages.on('bearSpray', (_, client) => {
+    const reactions = client.game.buySpray(client.id);
     for (const reaction of reactions) {
-        playerService.game.broadcast(reaction);
+        client.game.broadcast(reaction);
     }
     return;
 });
-messages.on('reshuffle', (_, playerService) => {
-    const reactions = playerService.game.reshuffle(playerService.id);
+messages.on('reshuffle', (_, client) => {
+    const reactions = client.game.reshuffle(client.id);
     for (const reaction of reactions) {
-        playerService.game.broadcast(reaction);
+        client.game.broadcast(reaction);
     }
     return;
 });
-messages.on('flashlight', (_, playerService) => {
-    const reactions = playerService.game.turnOnFlashlight(playerService.id);
+messages.on('flashlight', (_, client) => {
+    const reactions = client.game.turnOnFlashlight(client.id);
     for (const reaction of reactions) {
-        playerService.game.broadcast(reaction);
+        client.game.broadcast(reaction);
     }
     return;
 });
-messages.on('playAgain', (_, playerService) => {
-    const reactions = playerService.game.resetGame();
+messages.on('playAgain', (_, client) => {
+    const reactions = client.game.resetGame();
     for (const reaction of reactions) {
-        playerService.game.broadcast(reaction);
+        client.game.broadcast(reaction);
     }
     return;
 });
