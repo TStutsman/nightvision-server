@@ -1,7 +1,6 @@
-import { Reaction } from "./index.js";
-import { EventRouter } from "../service/EventRouter.js";
-import { GameService } from "../service/GameService.js";
-import { WebSocket } from "ws";
+import type { Reaction, ClientError, PlayerError } from "./index.js";
+import type { EventRouter, GameService } from "../service/index.js";
+import type { WebSocket } from "ws";
 
 export class Client {
     id:number;
@@ -9,11 +8,10 @@ export class Client {
     game:GameService;
     routers:{[eventName:string]: EventRouter};
 
-    constructor(ws:WebSocket, gameService:GameService, id:number){
-        this.ws = ws;
-        this.game = gameService;
+    constructor(game:GameService, id:number){
+        this.game = game;
         this.id = id;
-        this.routers = {}
+        this.routers = {};
     }
     
     /**
@@ -26,12 +24,15 @@ export class Client {
      * @returns this Client for method chaining
      */
     use(eventName: string, router:EventRouter):Client {
-        this.ws.on(eventName, (buffer: Buffer) => {
-            const json = String(buffer);
-            const data = JSON.parse(json);
+        if(this.ws){
+            this.ws.on(eventName, (buffer: Buffer) => {
+                const json = String(buffer);
+                const data = JSON.parse(json);
+    
+                router.routeEvent(this.game, this, data);
+            });
+        }
 
-            router.route(this, data);
-        });
         this.routers[eventName] = router;
         return this;
     }
@@ -43,14 +44,14 @@ export class Client {
      * @param ws - new websocket object to recieve and emit events
      * @returns this Client for method chaining
      */
-    reconnect(ws:WebSocket):Client {
+    connect(ws:WebSocket):Client {
         this.ws = ws;
         for(const eventName in this.routers){
             this.ws.on(eventName, (buffer: Buffer) => {
                 const json = String(buffer);
                 const data = JSON.parse(json);
 
-                this.routers[eventName].route(this, data);
+                this.routers[eventName].routeEvent(this.game, this, data);
             })
         }
         return this;
@@ -66,6 +67,16 @@ export class Client {
     json(reaction: Reaction):Client {
         this.send(reaction.json());
         return this;
+    }
+
+    /**
+     * Syntax-friendly function for sending
+     * json of an error to a client
+     * @param error - an error to be converted to json and sent to client
+     * @returns this Client for method chaining
+     */
+    error(error: ClientError | PlayerError):Client {
+        return this.json(error);
     }
 
     /**

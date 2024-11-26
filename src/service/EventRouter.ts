@@ -1,25 +1,27 @@
-import { Client, ClientError } from "../model/index.js";
+import { ClientError } from "../model/index.js";
+import type { Client } from "../model/index.js";
 import type { GameEvent } from "../types/index.js";
+import type { GameService } from "./index.js";
 
 interface Listener {
-    (event:GameEvent, client:Client):void
+    (game:GameService, client:Client, data:any):void
 }
 
 interface EventRouter {
     routes: {[event:string]: Listener};
     on: (eventName:string, reaction:Listener) => void;
-    route: (client:Client, data:any) => void;
+    routeEvent: (game:GameService, client:Client, data:any) => void;
 };
 
-class JSONEventRouter implements EventRouter{
+class GameEventRouter implements EventRouter{
     routes: {[event:string]: Listener};
 
     constructor() {
         this.routes = {};
 
         // Initialize default '*' route that can be overwritten by EventRouter.prototype.on()
-        this.routes['*'] = (event:GameEvent, client:Client) => {
-            const error = new ClientError(`Event ${event} not found`);
+        this.routes['*'] = (_, client, eventName) => {
+            const error = new ClientError(`Event ${eventName} not found`);
 
             client.json(error);
         };
@@ -37,7 +39,7 @@ class JSONEventRouter implements EventRouter{
     }
 
     /**
-     * Routes the event according to the eventName.
+     * Routes the event to a listener according to the event's name.
      * 
      * If the eventName is not registered to a listener function, 
      * the default listener ('*') is called instead
@@ -45,14 +47,14 @@ class JSONEventRouter implements EventRouter{
      * @param client - the event's origin Client instance
      * @param data - the data object to pass to the listener fn
      */
-    route(client:Client, data: any):void {
-        if(this.routes[data.event] === undefined) {
-            return this.routes['*'](data, client);
+    routeEvent(game:GameService, client: Client, event: GameEvent):void {
+        if(this.routes[event.name] === undefined) {
+            return this.routes['*'](game, client, event.name);
         }
 
-        const listener = this.routes[data.event];
-        listener(data, client);
+        const listener = this.routes[event.name];
+        listener(game, client, event.data);
     }
 }
 
-export { EventRouter, JSONEventRouter };
+export { EventRouter, GameEventRouter };

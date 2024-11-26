@@ -1,14 +1,17 @@
 import { NightVisionGame, Reaction, Client } from "../model/index.js";
 import { messageRouter } from "../routes/messages.js";
+import { GameEventRouter } from "./EventRouter.js";
 
 export class GameService extends NightVisionGame {
     clients: { [uuid: string]: Client };
     numClients: number;
+    router: GameEventRouter;
 
     constructor() {
         super();
         this.clients = {};
         this.numClients = 0;
+        this.router = messageRouter;
     }
 
     /**
@@ -22,19 +25,14 @@ export class GameService extends NightVisionGame {
      * @param ws - the websocket to send updates to this client
      */
     registerClient(uuid:string, ws: any):void {
-        // if the client is already defined (reconnecting)
-        // only update the existing client's websocket connection
-        if(this.clients[uuid] !== undefined){
-            this.clients[uuid].reconnect(ws);
-            return;
+        // if the client is not defined (first time connecting)
+        // create a new client and add to client hash
+        if(this.clients[uuid] === undefined){
+            const id = ++this.numClients;
+            this.clients[uuid] = new Client(this, id);
         }
-
-        const id = ++this.numClients;
-
-        const newClient = new Client(ws, this, id);
-        newClient.use('message', messageRouter);
-
-        this.clients[uuid] = newClient;
+        
+        this.clients[uuid].connect(ws).use('message', this.router);
     };
 
     /**
@@ -48,8 +46,8 @@ export class GameService extends NightVisionGame {
 
         this.numClients--;
 
-        const reactions = this.resetGame();
-        this.broadcast(reactions);
+        const reset = this.resetGame();
+        this.broadcast(reset);
     }
 
     /**

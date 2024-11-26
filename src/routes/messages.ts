@@ -1,43 +1,57 @@
-import { ClientError } from "../model/index.js";
-import { JSONEventRouter } from "../service/EventRouter.js";
+import { ClientError, Reaction, PlayerError } from "../model/index.js";
+import { GameEventRouter } from "../service/EventRouter.js";
 
-const messages = new JSONEventRouter();
+const messages = new GameEventRouter();
 
-messages.on('tileClick', (event, client) => {
-    if(!event.data || event.data.tileId === undefined) {
-        client.json(new ClientError('Must provide tile id for tileClick action'));
+messages.on('tileClick', (game, client, data) => {
+    if(!data || data.tileId === undefined) {
+        client.error(new ClientError('Must provide tile id for tileClick action'));
         return;
     }
 
-    const { game, id } = client;
+    const reactions:Reaction[] | PlayerError = game.tileClick(client.id, data.tileId);
 
-    const reactions = game.tileClick(id, event.data.tileId);
-
-    game.broadcast(reactions);
+    if (reactions instanceof PlayerError) {
+        client.error(reactions);
+    } else {
+        game.broadcast(reactions);
+    }
 });
 
-messages.on('bearSpray', (_, client) => {
-    const reactions = client.game.buySpray(client.id);
+messages.on('bearSpray', (game, client) => {
+    const reaction = game.buySpray(client.id);
 
-    client.game.broadcast(reactions);
+    if (reaction instanceof PlayerError) {
+        client.error(reaction);
+    } else {
+        game.broadcast(reaction);
+    }
 });
 
-messages.on('reshuffle', (_, client) => {
-    const reactions = client.game.reshuffle(client.id);
+messages.on('reshuffle', (game, client) => {
+    const reaction = game.reshuffle(client.id);
 
-    client.game.broadcast(reactions);
+    if (reaction instanceof PlayerError) {
+        client.error(reaction);
+    } else {
+        game.broadcast(reaction);
+    }
 });
 
-messages.on('flashlight', (_, client) => {
-    const reactions = client.game.turnOnFlashlight(client.id);
+messages.on('flashlight', (game, client) => {
+    const reaction = game.turnOnFlashlight(client.id);
 
-    client.game.broadcast(reactions);
+    if (reaction instanceof PlayerError) {
+        client.error(reaction);
+    } else {
+        game.broadcast(reaction);
+    }
 });
 
-messages.on('playAgain', (_, client) => {
-    const reactions = client.game.resetGame();
+messages.on('playAgain', (game) => {
+    const reaction = game.resetGame();
 
-    client.game.broadcast(reactions);
+    game.broadcast(reaction);
 });
 
 export { messages as messageRouter };
