@@ -1,26 +1,27 @@
 export class Client {
-    constructor(ws, gameService, id) {
-        this.ws = ws;
-        this.game = gameService;
+    constructor(game, id) {
+        this.game = game;
         this.id = id;
         this.routers = {};
     }
     use(eventName, router) {
-        this.ws.on(eventName, (buffer) => {
-            const json = String(buffer);
-            const data = JSON.parse(json);
-            router.route(this, data);
-        });
+        if (this.ws) {
+            this.ws.on(eventName, (buffer) => {
+                const json = String(buffer);
+                const data = JSON.parse(json);
+                router.routeEvent(this.game, this, data);
+            });
+        }
         this.routers[eventName] = router;
         return this;
     }
-    reconnect(ws) {
+    connect(ws) {
         this.ws = ws;
         for (const eventName in this.routers) {
             this.ws.on(eventName, (buffer) => {
                 const json = String(buffer);
                 const data = JSON.parse(json);
-                this.routers[eventName].route(this, data);
+                this.routers[eventName].routeEvent(this.game, this, data);
             });
         }
         return this;
@@ -28,6 +29,9 @@ export class Client {
     json(reaction) {
         this.send(reaction.json());
         return this;
+    }
+    error(error) {
+        return this.json(error);
     }
     send(message) {
         this.ws.send(message);

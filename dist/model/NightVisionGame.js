@@ -23,16 +23,16 @@ export class NightVisionGame {
     }
     tileClick(playerId, tileIdx) {
         if (!this.activePlayerIs(playerId)) {
-            return [new PlayerError('Not your turn')];
+            return new PlayerError('Not your turn');
         }
         if (this.flashlightIsOn) {
-            return [this.useFlashlight(tileIdx)];
+            return this.useFlashlight(tileIdx);
         }
         if (this.deck.tiles[tileIdx].isRevealed()) {
-            return [new PlayerError("can't flip a tile that's already been flipped")];
+            return new PlayerError("can't flip a tile that's already been flipped");
         }
         if (this.flippedTiles.length > 1) {
-            return [new PlayerError("can't flip more than two tiles")];
+            return new PlayerError("can't flip more than two tiles");
         }
         const tile = this.deck.revealTile(tileIdx);
         this.flippedTiles.push(tile);
@@ -76,10 +76,10 @@ export class NightVisionGame {
     }
     turnOnFlashlight(playerId) {
         if (!this.activePlayerIs(playerId)) {
-            [new PlayerError('Not your turn')];
+            new PlayerError('Not your turn');
         }
         this.flashlightIsOn = true;
-        return [new GameUpdate('flashlight', 'flashlight turned on')];
+        return new GameUpdate('flashlight', 'flashlight turned on');
     }
     useFlashlight(id) {
         const zone = Math.floor(id / 7);
@@ -101,7 +101,7 @@ export class NightVisionGame {
     }
     buySpray(playerId) {
         if (!this.activePlayerIs(playerId)) {
-            return [new PlayerError('Not your turn')];
+            return new PlayerError('Not your turn');
         }
         const purchaser = this.activePlayer();
         purchaser.buySpray();
@@ -110,18 +110,18 @@ export class NightVisionGame {
             playerId: purchaser.id,
             nextPlayerId: this.activePlayer().id,
         };
-        return [new GameUpdate('bearSpray', 'bear spray purchased', data)];
+        return new GameUpdate('bearSpray', 'bear spray purchased', data);
     }
     reshuffle(playerId) {
         if (!this.activePlayerIs(playerId)) {
-            return [new PlayerError('Not your turn')];
+            return new PlayerError('Not your turn');
         }
         this.deck.shuffle();
         this.turn += 1;
         const data = {
             deck: this.deck.getTiles()
         };
-        return [new GameUpdate('reshuffled', 'deck reshuffled', data)];
+        return new GameUpdate('reshuffled', 'deck reshuffled', data);
     }
     handleBearTile() {
         const activePlayer = this.activePlayer();
@@ -158,7 +158,7 @@ export class NightVisionGame {
             endGameStatus: '',
             deck: this.deck.getTiles(),
         };
-        return [new GameUpdate('gameReset', 'New game started', data)];
+        return new GameUpdate('gameReset', 'New game started', data);
     }
     winningPlayer() {
         const { 1: player1, 2: player2 } = this.players;

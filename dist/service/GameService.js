@@ -5,23 +5,21 @@ export class GameService extends NightVisionGame {
         super();
         this.clients = {};
         this.numClients = 0;
+        this.router = messageRouter;
     }
     registerClient(uuid, ws) {
-        if (this.clients[uuid] !== undefined) {
-            this.clients[uuid].reconnect(ws);
-            return;
+        if (this.clients[uuid] === undefined) {
+            const id = ++this.numClients;
+            this.clients[uuid] = new Client(this, id);
         }
-        const id = ++this.numClients;
-        const newClient = new Client(ws, this, id);
-        newClient.use('message', messageRouter);
-        this.clients[uuid] = newClient;
+        this.clients[uuid].connect(ws).use('message', this.router);
     }
     ;
     removeClient(uuid) {
         delete this.clients[uuid];
         this.numClients--;
-        const reactions = this.resetGame();
-        this.broadcast(reactions);
+        const reset = this.resetGame();
+        this.broadcast(reset);
     }
     broadcast(reactionOrReactions) {
         if (reactionOrReactions instanceof Reaction) {

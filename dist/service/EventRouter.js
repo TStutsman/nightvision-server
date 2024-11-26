@@ -1,23 +1,23 @@
 import { ClientError } from "../model/index.js";
 ;
-class JSONEventRouter {
+class GameEventRouter {
     constructor() {
         this.routes = {};
-        this.routes['*'] = (event, client) => {
-            const error = new ClientError(`Event ${event} not found`);
+        this.routes['*'] = (_, client, eventName) => {
+            const error = new ClientError(`Event ${eventName} not found`);
             client.json(error);
         };
     }
     on(eventName, reaction) {
         this.routes[eventName] = reaction;
     }
-    route(client, data) {
-        if (this.routes[data.event] === undefined) {
-            return this.routes['*'](data, client);
+    routeEvent(game, client, event) {
+        if (this.routes[event.name] === undefined) {
+            return this.routes['*'](game, client, event.name);
         }
-        const listener = this.routes[data.event];
-        listener(data, client);
+        const listener = this.routes[event.name];
+        listener(game, client, event.data);
     }
 }
-export { JSONEventRouter };
+export { GameEventRouter };
 //# sourceMappingURL=EventRouter.js.map
