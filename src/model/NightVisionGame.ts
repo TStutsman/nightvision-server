@@ -76,7 +76,7 @@ export class NightVisionGame {
     */
     tileClick(playerId:number, tileIdx:number):GameUpdate[] | PlayerError {
         if(!this.activePlayerIs(playerId)){
-            return new PlayerError('Not your turn');
+            return new PlayerError("It isn't your turn yet");
         }
 
         if(this.flashlightIsOn) {
@@ -84,17 +84,13 @@ export class NightVisionGame {
         }
 
         if(this.deck.tiles[tileIdx].isRevealed()) {
-            return new PlayerError("can't flip a tile that's already been flipped");
-        }
-        
-        if(this.flippedTiles.length > 1) {
-            return new PlayerError("can't flip more than two tiles");
+            return new PlayerError("That tile is already flipped!");
         }
 
         const tile = this.deck.revealTile(tileIdx);
         this.flippedTiles.push(tile);
 
-        const gameUpdates = [new GameUpdate('tileClick', 'tile flipped', tile.revealed())];
+        const gameUpdates = [new GameUpdate('tileClick', 'Tile Flipped', tile.revealed())];
 
         if(tile.type == 'Bear') {
             const result = this.handleBearTile();
@@ -115,7 +111,7 @@ export class NightVisionGame {
                     score: activePlayer.points
                 };
 
-                gameUpdates.push(new GameUpdate('match', 'tiles matched', data));
+                gameUpdates.push(new GameUpdate('match', 'Tile Match!', data));
 
                 // Check for end of game
                 if(this.numTilesPaired > 19){
@@ -137,7 +133,7 @@ export class NightVisionGame {
                     nextPlayerId: this.activePlayer().id
                 }
 
-                gameUpdates.push(new GameUpdate('noMatch', "tiles did not match", data));
+                gameUpdates.push(new GameUpdate('noMatch', "Tiles did not match", data));
             }
 
             this.flippedTiles = [];
@@ -154,11 +150,11 @@ export class NightVisionGame {
      */
     turnOnFlashlight(playerId: number):GameUpdate {
         if(!this.activePlayerIs(playerId)) {
-            new PlayerError('Not your turn');
+            new PlayerError("It isn't your turn yet");
         }
 
         this.flashlightIsOn = true;
-        return new GameUpdate('flashlight', 'flashlight turned on');
+        return new GameUpdate('flashlight', 'Flashlight ON');
     }
 
     /**
@@ -185,7 +181,7 @@ export class NightVisionGame {
         this.flashlightIsOn = false;
         this.turn += 1;
 
-        const message = 'Bear ' + (this.bearSpotted ? 'spotted' : 'not spotted');
+        const message = 'The bear was' + (this.bearSpotted ? 'spotted' : 'not spotted');
         const data = {
             rowFirstIndex: lower,
         }
@@ -198,7 +194,7 @@ export class NightVisionGame {
      */
     buySpray(playerId:number):GameUpdate {
         if(!this.activePlayerIs(playerId)){
-            return new PlayerError('Not your turn');
+            return new PlayerError("It isn't your turn yet");
         }
 
         const purchaser = this.activePlayer();
@@ -218,7 +214,7 @@ export class NightVisionGame {
      */
     reshuffle(playerId:number):GameUpdate {
         if(!this.activePlayerIs(playerId)) {
-            return new PlayerError('Not your turn');
+            return new PlayerError("It isn't your turn yet");
         }
 
         this.deck.shuffle();
@@ -228,7 +224,7 @@ export class NightVisionGame {
             deck: this.deck.getTiles()
         }
 
-        return new GameUpdate('reshuffled', 'deck reshuffled', data);
+        return new GameUpdate('reshuffled', 'Deck Reshuffle!', data);
     }
 
     /**
@@ -245,7 +241,7 @@ export class NightVisionGame {
         if(activePlayer.hasSpray){
             // use spray if they have it
             activePlayer.hasSpray = false;
-            return new GameUpdate('bearSprayUsed', 'Player was saved by bear spray', { playerId: activePlayer.id });
+            return new GameUpdate('bearSprayUsed', 'Whew, saved by Bear Spray!', { playerId: activePlayer.id });
             
         } else {
             // end the game if bear and no spray
@@ -300,7 +296,7 @@ export class NightVisionGame {
             deck: this.deck.getTiles(),
         };
 
-        return new GameUpdate('gameReset', 'New game started', data);
+        return new GameUpdate('gameReset', 'New Game Started', data);
     }
 
     /**
