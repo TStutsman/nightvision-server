@@ -1,6 +1,7 @@
 import { NightVisionGame, Reaction, Client } from "../model/index.js";
 import { messageRouter } from "../routes/messages.js";
 import { GameEventRouter } from "./EventRouter.js";
+import type { WebSocket } from 'ws';
 
 export class GameService extends NightVisionGame {
     clients: { [uuid: string]: Client };
@@ -24,7 +25,7 @@ export class GameService extends NightVisionGame {
      * @param uuid - the client's unique session token cookie
      * @param ws - the websocket to send updates to this client
      */
-    registerClient(uuid:string, ws: any):void {
+    registerClient(uuid:string, ws: WebSocket):void {
         // if the client is not defined (first time connecting)
         // create a new client and add to client hash
         if(this.clients[uuid] === undefined){

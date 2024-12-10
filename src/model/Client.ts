@@ -24,7 +24,7 @@ export class Client {
      * @returns this Client for method chaining
      */
     use(eventName: string, router:EventRouter):Client {
-        if(this.ws){
+        if(this.ws && this.ws.listenerCount(eventName) == 0){
             this.ws.on(eventName, (buffer: Buffer) => {
                 const json = String(buffer);
                 const data = JSON.parse(json);
@@ -54,6 +54,7 @@ export class Client {
                 this.routers[eventName].routeEvent(this.game, this, data);
             })
         }
+
         return this;
     }
 
