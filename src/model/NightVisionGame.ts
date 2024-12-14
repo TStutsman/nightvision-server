@@ -291,7 +291,6 @@ export class NightVisionGame {
             activePlayer: this.activePlayer().id,
             players: this.players,
             bearSpotted: this.bearSpotted,
-            gameOver: false,
             endGameStatus: '',
             deck: this.deck.getTiles(),
         };

@@ -112,7 +112,6 @@ games.ws('/:gameId', async (req, res) => {
     const gameService:GameService = gameStore.getGameServiceById(req.params.gameId);
 
     if(!gameService){
-        console.log('no game');
         res.reject(404, 'This game does not exist');
         return;
     }
