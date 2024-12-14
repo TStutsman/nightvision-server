@@ -5,7 +5,7 @@ export class Client {
         this.routers = {};
     }
     use(eventName, router) {
-        if (this.ws) {
+        if (this.ws && this.ws.listenerCount(eventName) == 0) {
             this.ws.on(eventName, (buffer) => {
                 const json = String(buffer);
                 const data = JSON.parse(json);

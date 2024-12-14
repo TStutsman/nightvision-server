@@ -58,7 +58,6 @@ games.ws('/:gameId', async (req, res) => {
     const token = req.cookies.session;
     const gameService = gameStore.getGameServiceById(req.params.gameId);
     if (!gameService) {
-        console.log('no game');
         res.reject(404, 'This game does not exist');
         return;
     }
