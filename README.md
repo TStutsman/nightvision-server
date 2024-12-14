@@ -2,7 +2,15 @@
 
 An Express API for running the Night Vision Game
 
+* [Routes](#routes)
+* [Events](#events)
+
 ## Routes
+* [Connecting the client session](#connecting-the-client-session)
+* [Creating a new game](#creating-a-new-game-instance)
+* [Joining a game](#joining-an-existing-game)
+* [Leaving a game](#leaving-a-game)
+* [Connecting the websocket](#connecting-the-game-websocket)
 
 ### Connecting the Client Session
 > ### Request
@@ -101,6 +109,12 @@ This route establishes a websocket connection to the game instance. The client i
 
 
 ## Events
+
+* [Tile Click](#tile-click-event)
+* [Bear Spray](#bear-spray-purchase-event)
+* [Reshuffle](#reshuffle-event)
+* [Flashlight](#flashlight-event)
+* [Play Again](#play-again-event)
 
 All events sent via Websocket should be JSON and follow the format:
 ```json
