@@ -1,11 +1,13 @@
 export class Tile {
     _id: number;
     type: string;
+    url: string;
     _revealed: boolean;
 
     constructor(id: number, type: string) {
         this._id = id;
         this.type = type;
+        this.url = 'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_' + type.toLowerCase() + '.jpg'
         this._revealed = false;
     }
     
@@ -33,6 +35,7 @@ export class Tile {
         return {
             id: this._id,
             type: this.type,
+            url: this.url,
             revealed: this._revealed
         }
     }

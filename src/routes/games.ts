@@ -28,7 +28,8 @@ games.get('/new', (req, res) => {
             players,
             bearSpotted,
             endGameStatus,
-            deck: deck.getTiles()
+            deck: deck.getTiles(),
+            images: GameService.images
         }
     });
 });
@@ -89,11 +90,12 @@ games.get('/:gameId', (req, res) => {
     res.json({
         gameId: req.params.gameId,
         game: {
-        activePlayer: game.activePlayer().id,
-        players,
-        bearSpotted,
-        endGameStatus,
-        deck: deck.getTiles()
+            activePlayer: game.activePlayer().id,
+            players,
+            bearSpotted,
+            endGameStatus,
+            deck: deck.getTiles(),
+            images: GameService.images
         }
     });
 });

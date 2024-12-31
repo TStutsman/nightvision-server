@@ -1,4 +1,5 @@
 import { gameStore, sessionStore } from '../repository/index.js';
+import { GameService } from "../service/index.js";
 import { Router } from 'websocket-express';
 const games = new Router();
 games.get('/new', (req, res) => {
@@ -14,7 +15,8 @@ games.get('/new', (req, res) => {
             players,
             bearSpotted,
             endGameStatus,
-            deck: deck.getTiles()
+            deck: deck.getTiles(),
+            images: GameService.images
         }
     });
 });
@@ -50,7 +52,8 @@ games.get('/:gameId', (req, res) => {
             players,
             bearSpotted,
             endGameStatus,
-            deck: deck.getTiles()
+            deck: deck.getTiles(),
+            images: GameService.images
         }
     });
 });

@@ -2,6 +2,7 @@ export class Tile {
     constructor(id, type) {
         this._id = id;
         this.type = type;
+        this.url = 'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_' + type.toLowerCase() + '.jpg';
         this._revealed = false;
     }
     getId() {
@@ -23,6 +24,7 @@ export class Tile {
         return {
             id: this._id,
             type: this.type,
+            url: this.url,
             revealed: this._revealed
         };
     }

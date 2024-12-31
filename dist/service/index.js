@@ -1,3 +1,4 @@
+import { GameEventRouter as EventRouter } from "./EventRouter.js";
 import { GameService } from "./GameService.js";
-export { GameService };
+export { EventRouter, GameService };
 //# sourceMappingURL=index.js.map

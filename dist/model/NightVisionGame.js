@@ -90,7 +90,7 @@ export class NightVisionGame {
         }
         this.flashlightIsOn = false;
         this.turn += 1;
-        const message = 'The bear was' + (this.bearSpotted ? 'spotted' : 'not spotted');
+        const message = 'The bear was ' + (this.bearSpotted ? 'spotted' : 'not spotted');
         const data = {
             rowFirstIndex: lower,
         };
@@ -179,4 +179,17 @@ NightVisionGame.tiles = {
     'Raven': 2,
     'Bear': 1,
 };
+NightVisionGame.images = [
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_pika.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_chipmunk.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_marmot.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_owl.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_fox.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_weasel.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_raccoon.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_bat.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_frog.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_raven.jpg',
+    'https://nmls-pictures-bucket.s3.us-east-2.amazonaws.com/rainier_bear.jpg'
+];
 //# sourceMappingURL=NightVisionGame.js.map
