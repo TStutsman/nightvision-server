@@ -28,12 +28,17 @@ export class GameService extends NightVisionGame {
     registerClient(uuid:string, ws: WebSocket):void {
         // if the client is not defined (first time connecting)
         // create a new client and add to client hash
+        let joinMessage = 'A player has reconnected'
         if(this.clients[uuid] === undefined){
             const id = ++this.numClients;
             this.clients[uuid] = new Client(this, id);
+            joinMessage = 'A new player has joined the game'
         }
         
         this.clients[uuid].connect(ws).use('message', this.router);
+
+        const joinedBroadcast = new Reaction('playerJoin', joinMessage);
+        this.broadcast(joinedBroadcast);
     };
 
     /**
