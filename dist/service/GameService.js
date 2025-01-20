@@ -8,11 +8,20 @@ export class GameService extends NightVisionGame {
         this.router = messageRouter;
     }
     registerClient(uuid, ws) {
+        let joinMessage = 'A player has reconnected';
         if (this.clients[uuid] === undefined) {
             const id = ++this.numClients;
             this.clients[uuid] = new Client(this, id);
+            joinMessage = 'A new player has joined the game';
         }
         this.clients[uuid].connect(ws).use('message', this.router);
+        const joinedBroadcast = new Reaction('playerJoin', joinMessage);
+        this.broadcast(joinedBroadcast);
+        if (this.numClients > 1) {
+            this.activateMultiplayer();
+            if (this.numClients == 2)
+                this.broadcast(this.resetGame());
+        }
     }
     ;
     removeClient(uuid) {
@@ -20,6 +29,9 @@ export class GameService extends NightVisionGame {
         this.numClients--;
         const reset = this.resetGame();
         this.broadcast(reset);
+        if (this.numClients == 1) {
+            this.deactivateMultiplayer();
+        }
     }
     broadcast(reactionOrReactions) {
         if (reactionOrReactions instanceof Reaction) {

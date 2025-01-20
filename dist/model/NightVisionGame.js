@@ -4,6 +4,7 @@ import { Reaction as GameUpdate, PlayerError } from './Reaction.js';
 export class NightVisionGame {
     constructor() {
         this.turn = 0;
+        this.singlePlayerMode = true;
         this.players = {
             1: new Player(1),
             2: new Player(2),
@@ -19,7 +20,15 @@ export class NightVisionGame {
         return this.players[(this.turn % 2) + 1];
     }
     activePlayerIs(id) {
+        if (this.singlePlayerMode)
+            return true;
         return this.activePlayer().id === id;
+    }
+    activateMultiplayer() {
+        this.singlePlayerMode = false;
+    }
+    deactivateMultiplayer() {
+        this.singlePlayerMode = true;
     }
     tileClick(playerId, tileIdx) {
         if (!this.activePlayerIs(playerId)) {
