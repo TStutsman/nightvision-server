@@ -39,6 +39,13 @@ export class GameService extends NightVisionGame {
 
         const joinedBroadcast = new Reaction('playerJoin', joinMessage);
         this.broadcast(joinedBroadcast);
+
+        if(this.numClients > 1) {
+            this.activateMultiplayer()
+            
+            // if this is the second player to join, reset the game
+            if(this.numClients == 2) this.broadcast(this.resetGame());
+        }
     };
 
     /**
@@ -54,6 +61,10 @@ export class GameService extends NightVisionGame {
 
         const reset = this.resetGame();
         this.broadcast(reset);
+
+        if(this.numClients == 1){
+            this.deactivateMultiplayer()
+        }
     }
 
     /**

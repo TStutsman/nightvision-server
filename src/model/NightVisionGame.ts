@@ -5,6 +5,7 @@ import { Reaction as GameUpdate, PlayerError } from './Reaction.js';
 
 export class NightVisionGame {
     turn: number;
+    singlePlayerMode: boolean;
     players: {[id:number]: Player};
 
     flashlightIsOn: boolean;
@@ -45,20 +46,21 @@ export class NightVisionGame {
     ]
 
     constructor() {
-    this.turn = 0;
-    this.players = {
-        1: new Player(1), 
-        2: new Player(2),
-    };
+        this.turn = 0;
+        this.singlePlayerMode = true;
+        this.players = {
+            1: new Player(1), 
+            2: new Player(2),
+        };
 
-    this.flashlightIsOn = false;
-    this.bearSpotted = false;
+        this.flashlightIsOn = false;
+        this.bearSpotted = false;
 
-    this.numTilesPaired = 0;
-    this.endGameStatus = "";
+        this.numTilesPaired = 0;
+        this.endGameStatus = "";
 
-    this.deck = new Deck(NightVisionGame.tiles);
-    this.flippedTiles = [];
+        this.deck = new Deck(NightVisionGame.tiles);
+        this.flippedTiles = [];
     }
 
     /**
@@ -74,7 +76,27 @@ export class NightVisionGame {
      * @returns true if the id is the same as the game's activePlayer id
      */
     activePlayerIs(id:number) {
+        if(this.singlePlayerMode) return true;
+
         return this.activePlayer().id === id;
+    }
+
+    /**
+     * Switches to multiplayer mode
+     * Useful for when a second player joins the game. When
+     * single player mode is turned off, players cannot make moves
+     * while it is not their turn.
+     */
+    activateMultiplayer() {
+        this.singlePlayerMode = false;
+    }
+
+    /**
+     * Switches to single player mode
+     * Useful for when the second player leaves the game.
+     */
+    deactivateMultiplayer() {
+        this.singlePlayerMode = true;
     }
 
     /**
