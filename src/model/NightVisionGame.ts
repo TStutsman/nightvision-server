@@ -242,7 +242,7 @@ export class NightVisionGame {
             nextPlayerId: this.activePlayer().id,
         }
 
-        return new GameUpdate('bearSpray', 'bear spray purchased', data);
+        return new GameUpdate('bearSpray', 'Bear spray purchased', data);
     }
 
     /**
